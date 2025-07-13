@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Header style: gray text, not bold */
+    table.dataTable thead th {
+        background-color: #f9fafb;
+        /* Tailwind's gray-50 */
+        color: #6b7280 !important;
+        /* Tailwind's gray-500 */
+        font-weight: 400 !important;
+        /* Normal, not bold */
+        font-size: 0.875rem !important;
+        /* text-sm */
+        padding: 6px 8px !important;
+        white-space: nowrap;
+    }
+
+    /* Table body cell style */
+    table.dataTable tbody td {
+        font-size: 0.875rem !important;
+        /* text-sm */
+        padding: 4px 8px !important;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* Full width and auto layout */
+    table.dataTable {
+        width: 100% !important;
+        table-layout: auto;
+    }
+
+    /* Align details icon center if responsive collapse is used */
+    table.dataTable.dtr-inline.collapsed>tbody>tr>td:first-child:before {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .currency {
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
+<section class="w-full text-gray-800 text">
+    <div class="flex flex-col md:flex-row gap-4 md:gap-8 space-y-6">
+        <div class="w-full md:w-1/3 space-y-6">
+            <div class="space-y-6 px-6 md:p-0">
+                <div class="mb-6 border-b border-gray-300">
+                    <nav class="flex pb-4" aria-label="Breadcrumb">
+                        <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                            <li class="inline-flex items-center">
+                                <a href="{{ url_for('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600
+                                    {% if request.path == '/dashboard' %}
+                    text-gray-400
+                    {% else %}
+                    self-center
+                    {% endif %}">
+                                    Home
+                                </a>
+                            </li>
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m1 9 4-4-4-4" />
+                                    </svg>
+                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600
+            {% if request.path == '/income' %}
+                    text-gray-400
+                    {% else %}
+                    self-center
+                    {% endif %}">Income</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m1 9 4-4-4-4" />
+                                    </svg>
+                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600
+            {% if request.path == '/expenses' %}
+                    text-gray-400
+                    {% else %}
+                    self-center
+                    {% endif %}">Expenses</a>
+                                </div>
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="text-center md:text-left space-y-2">
+                    <h2 class="text-xl font-medium text-gray-800 capitalize">Dashboard</h2>
+                    <p class="text-gray-500 text-sm">Analisis performa keuangan bulanan</p>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-2 gap-4 md:gap-6 mb-8">
+                    <!-- Total Pendapatan -->
+                    <div
+                        class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-600">Total Pendapatan</h3>
+                            <div class="p-1 md:p-2 bg-emerald-50 rounded-lg">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 text-emerald-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-lg font-bold text-emerald-600" id="totalIncome">
+                            Rp {{ "{:,}".format(chart_income | sum).replace(",", ".") }}
+                        </div>
+                        <div class="text-sm text-gray-500 mt-2">
+                            <span class="text-emerald-600">{{ "+{:.1f}%".format(((chart_income | sum) / (chart_income |
+                                sum * 0.9) - 1) * 100) if chart_income | sum > 0 else "0%" }}</span> dari bulan lalu
+                        </div>
+                    </div>
+
+                    <!-- Total Pengeluaran -->
+                    <div
+                        class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-600">Total Pengeluaran</h3>
+                            <div class="p-1 md:p-2 bg-red-50 rounded-lg">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 text-red-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-lg font-bold text-red-600" id="totalExpenses">
+                            Rp {{ "{:,}".format(chart_expenses | sum).replace(",", ".") }}
+                        </div>
+                        <div class="text-sm text-gray-500 mt-2">
+                            <span class="text-red-600">{{ "+{:.1f}%".format(((chart_expenses | sum) / (chart_expenses |
+                                sum * 0.92) - 1) * 100) if chart_expenses | sum > 0 else "0%" }}</span> dari bulan lalu
+                        </div>
+                    </div>
+
+                    <!-- Saldo Bersih -->
+                    <div
+                        class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-600">Saldo Bersih</h3>
+                            <div class="p-1 md:p-2 bg-blue-50 rounded-lg">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-lg font-bold {% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
+                            id="netBalance">
+                            Rp {{ "{:,}".format((chart_income | sum) - (chart_expenses | sum)).replace(",", ".") }}
+                        </div>
+                        <div class="text-sm text-gray-500 mt-2">
+                            <span
+                                class="{% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
+                                {{ "{:+.1f}%".format(((((chart_income | sum) - (chart_expenses | sum)) / (((chart_income
+                                | sum) - (chart_expenses | sum)) * 0.77) - 1) * 100) if ((chart_income | sum) -
+                                (chart_expenses | sum)) != 0 else 0) }}
+                            </span> dari bulan lalu
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div>
+                    <div class="flex justify-center gap-4 mb-6 p-4 bg-orange-100 rounded-lg">
+                        <div id="chartLegend" class="flex gap-4 flex-wrap justify-center">
+                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
+                                data-dataset="0">
+                                <span class="w-4 h-4 bg-emerald-500 rounded-full"></span>Pendapatan
+                            </div>
+                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
+                                data-dataset="1">
+                                <span class="w-4 h-4 bg-red-500 rounded-full"></span>Pengeluaran
+                            </div>
+                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
+                                data-dataset="2">
+                                <span class="w-4 h-4 bg-blue-500 rounded-full"></span>Saldo
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Wrapper -->
+                    <div class="relative h-72 w-full">
+                        <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
+                            data-income='{{ chart_income | tojson | safe }}'
+                            data-expenses='{{ chart_expenses | tojson | safe }}'
+                            data-balance='{{ chart_balance | tojson | safe }}'>
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full md:w-2/3 space-y-6">
+            <div class="bg-white rounded-t-3xl md:rounded-lg">
+                <div class="space-y-6 p-6">
+                    <div class="md:flex items-center justify-between mb-6">
+                        <div class="text-center md:text-left space-y-2">
+                            <h2 class="text-xl font-medium text-gray-800 capitalize">Annual Summary Report ({{
+                                selected_year }})</h2>
+                            <p class="text-gray-500 text-sm">A breakdown of income, expenses, and balance per month in a
+                                year</p>
+                        </div>
+                        <div class="mb-4 md:flex md:justify-end space-x-2">
+                            <!-- Filter Section -->
+                            <form method="get"
+                                class="w-full flex flex-col sm:flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
+                                <!-- Year Selector -->
+                                <div class="w-full sm:w-auto">
+                                    <label for="year" class="sr-only">Year</label>
+                                    <select id="year" name="year"
+                                        class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        {% for y in range(2024, now().year + 1) %}
+                                        <option value="{{ y }}" {% if y|string==selected_year %}selected{% endif %}>{{ y
+                                            }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="w-full sm:w-auto">
+                                    <button type="submit"
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        Filter
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto w-full py-4">
+                        <table id="records-table"
+                            class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr class="bg-gray-50">
+                                    <th
+                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Month
+                                    </th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        Income</th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        Expenses</th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        Balance
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for month, data in summary_data %}
+                                <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 text-sm">
+                                    <td class="px-3 py-2 capitalize whitespace-nowrap">{{ month | format_month }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ data.income | format_rupiah }}
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ data.expenses | format_rupiah }}
+                                    </td>
+                                    <td
+                                        class="px-3 py-2 whitespace-nowrap currency text-right {{ 'text-green-600' if data.balance >= 0 else 'text-red-600' }}">
+                                        {{ data.balance | format_rupiah }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-gray-100 text-sm font-medium text-gray-700">
+                                <tr>
+                                    <td class="px-3 py-2 text-right">Total</td>
+                                    <td class="px-2 py-2 text-right currency font-bold" id="total-income"></td>
+                                    <td class="px-2 py-2 text-right currency font-bold" id="total-expenses"></td>
+                                    <td class="px-2 py-2 text-right currency font-bold" id="total-balance"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<!--datatables-->
+<script>
+    $(document).ready(function () {
+        $('#records-table').DataTable({
+            responsive: {
+                details: { type: 'column', target: 'tr' }
+            },
+            paging: false,           // Disable pagination
+            lengthChange: false,     // Hide "Show entries"
+            language: {
+                search: "Search:",
+                info: "Showing _TOTAL_ entries",
+                zeroRecords: "No records found"
+            },
+            columnDefs: [{
+                searchable: false,
+                orderable: false,
+                render: (data, type, row, meta) => meta.row + 1,
+                className: "px-2 py-1"
+            },
+            { targets: '_all', className: "px-2 py-1" }
+            ],
+            dom:
+                // Only search bar on top, and info on bottom
+                '<"flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 mb-4"f>' +
+                'rt' +
+                '<"text-sm text-gray-600 mt-4"i>',
+            initComplete: function () {
+                $('.dataTables_filter label').addClass('text-sm font-medium text-gray-700');
+                $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded text-sm');
+                $('.dataTables_info').addClass('text-sm text-gray-600 mt-2');
+            },
+
+            // Footer callback untuk total income, expense & balance
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                let parseAmount = val => {
+                    if (typeof val === 'string') {
+                        val = val.replace(/[^\d-]/g, ''); // Hapus selain digit & minus
+                        return parseInt(val) || 0;
+                    }
+                    return typeof val === 'number' ? val : 0;
+                };
+
+                let formatRupiah = val => new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(val);
+
+                // Income: kolom index 1
+                let totalIncome = api.column(1, { page: 'current' }).data().reduce((a, b) => parseAmount(a) + parseAmount(b), 0);
+                let totalExpenses = api.column(2, { page: 'current' }).data().reduce((a, b) => parseAmount(a) + parseAmount(b), 0);
+                let totalBalance = api.column(3, { page: 'current' }).data().reduce((a, b) => parseAmount(a) + parseAmount(b), 0);
+
+                // Tampilkan ke <tfoot>
+                $('#total-income').html(formatRupiah(totalIncome));
+                $('#total-expenses').html(formatRupiah(totalExpenses));
+                $('#total-balance')
+                    .html(formatRupiah(totalBalance))
+                    .removeClass('text-green-600 text-red-600')
+                    .addClass(totalBalance >= 0 ? 'text-green-600' : 'text-red-600');
+            }
+        });
+    });
+</script>
+
+<!--Line chart-->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const ctx = document.getElementById("lineChart");
+        const labels = JSON.parse(ctx.dataset.labels);
+        const income = JSON.parse(ctx.dataset.income);
+        const expenses = JSON.parse(ctx.dataset.expenses);
+        const balance = JSON.parse(ctx.dataset.balance);
+
+        const shortLabels = labels.map(month => {
+            const map = {
+                "January": "Jan", "February": "Feb", "March": "Mar",
+                "April": "Apr", "May": "Mei", "June": "Jun",
+                "July": "Jul", "August": "Agt", "September": "Sep",
+                "October": "Okt", "November": "Nov", "December": "Des"
+            };
+            return map[month] || month;
+        });
+
+        const formatShortCurrency = value => {
+            if (value >= 1_000_000_000) {
+                return (value / 1_000_000_000).toFixed(1).replace('.0', '') + 'B';
+            } else if (value >= 1_000_000) {
+                return (value / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+            } else if (value >= 1_000) {
+                return (value / 1_000).toFixed(0) + 'K';
+            } else {
+                return value;
+            }
+        };
+
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: shortLabels,
+                datasets: [
+                    {
+                        label: 'Pendapatan',
+                        data: income,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: true
+                    },
+                    {
+                        label: 'Pengeluaran',
+                        data: expenses,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239,68,68,0.1)',
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: true
+                    },
+                    {
+                        label: 'Saldo',
+                        data: balance,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: false,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.parsed.y;
+                                return `${context.dataset.label}: Rp ${formatShortCurrency(value)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function (value) {
+                                return 'Rp ' + formatShortCurrency(value);
+                            }
+                        },
+                        grid: { color: '#e5e7eb' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Custom legend toggle
+        document.querySelectorAll(".legend-item").forEach((el) => {
+            el.addEventListener("click", () => {
+                const index = parseInt(el.dataset.dataset);
+                const meta = chart.getDatasetMeta(index);
+                meta.hidden = meta.hidden === null ? true : !meta.hidden;
+                chart.update();
+                el.style.opacity = meta.hidden ? "0.4" : "1";
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}

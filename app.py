@@ -56,6 +56,15 @@ def format_date(value):
     except:
         return value
 
+#--- Format bulan ---
+@app.template_filter()
+def format_month(value):
+    try:
+        dt = datetime.strptime(value, "%Y-%m")
+        return dt.strftime("%B %Y")  # e.g. July 2025
+    except:
+        return value
+    
 @app.template_filter('monthname')
 def monthname_filter(m):
     return calendar.month_name[int(m)]
@@ -89,6 +98,62 @@ def get_data(sheet_name):
     return values
 
 
+@app.route("/")
+def index():
+    return redirect('dashboard')
+# Dashboard page
+@app.route("/dashboard")
+def dashboard():
+    selected_year = request.args.get("year", datetime.now().year, type=int)
+    # Ambil data dari Google Sheets
+    income_data = get_data("Income")
+    expenses_data = get_data("Expenses")
+
+    # Buat struktur penampung total per bulan
+    monthly_summary = defaultdict(lambda: {"income": 0, "expenses": 0})
+
+    def process_data(data, tipe):
+        for row in data:
+            try:
+                date_obj = datetime.strptime(row[0], "%Y-%m-%d")
+                if date_obj.year == selected_year:
+                    month_key = date_obj.strftime("%Y-%m")
+                    amount = int(row[3].replace(".", "").replace(",", ""))
+                    monthly_summary[month_key][tipe] += amount
+            except (IndexError, ValueError):
+                continue  # Lewati baris rusak
+
+    process_data(income_data, "income")
+    process_data(expenses_data, "expenses")
+
+    # Tambahkan saldo
+    for key in monthly_summary:
+        summary = monthly_summary[key]
+        summary["balance"] = summary["income"] - summary["expenses"]
+
+    # Urutkan berdasarkan bulan
+    sorted_months = sorted(monthly_summary.keys())
+    summary_data = [(month, monthly_summary[month]) for month in sorted_months]
+
+    chart_labels = [calendar.month_name[m] for m in range(1, 13)]
+    chart_income = []
+    chart_expenses = []
+    chart_balance = []
+
+    for m in range(1, 13):
+        key = f"{selected_year}-{m:02d}"
+        data = monthly_summary.get(key, {"income": 0, "expenses": 0, "balance": 0})
+        chart_income.append(data["income"])
+        chart_expenses.append(data["expenses"])
+        chart_balance.append(data["balance"])
+
+    return render_template("dashboard.html", summary_data=summary_data, selected_year=str(selected_year),
+                           chart_labels=chart_labels,
+                           chart_income=chart_income,
+                           chart_expenses=chart_expenses,
+                           chart_balance=chart_balance)
+
+# Income page
 @app.route("/income", methods=["GET", "POST"])
 def income():
     if request.method == "POST":
@@ -146,6 +211,7 @@ def income():
                            chart_labels=list(category_totals.keys()),
                            chart_data=list(category_totals.values()))
 
+# Expenses page
 @app.route("/expenses", methods=["GET", "POST"])
 def expenses():
     if request.method == "POST":
