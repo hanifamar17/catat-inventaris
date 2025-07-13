@@ -3,7 +3,9 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
 import json
-from datetime import date
+from datetime import datetime, date
+import calendar
+from collections import defaultdict
 
 app = Flask(__name__)
 secret_key = os.urandom(24)
@@ -40,7 +42,7 @@ sheets_service = build('sheets', 'v4', credentials=credentials)
 def format_rupiah(amount):
     try:
         amount = float(amount)
-        return f"IDR {amount:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"Rp {amount:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
     except (ValueError, TypeError):
         return amount 
 
@@ -53,7 +55,15 @@ def format_date(value):
         return dt.strftime("%d/%m/%Y")
     except:
         return value
-    
+
+@app.template_filter('monthname')
+def monthname_filter(m):
+    return calendar.month_name[int(m)]
+
+@app.context_processor
+def inject_now():
+    return {'now': datetime.now}
+ 
 # Ambil category di sheet Category
 def get_categories(column):
     range_map= {
@@ -100,9 +110,41 @@ def income():
     
     income_categories = get_categories("income")
     income_data = get_data("Income")
+
+    # Ambil bulan & tahun dari query param, default: bulan sekarang
+    selected_month = request.args.get("month", default=str(datetime.now().month))
+    selected_year = request.args.get("year", default=str(datetime.now().year))
+
+    # Filter data berdasarkan bulan & tahun
+    filtered_data = []
+    for row in income_data:
+        try:
+            row_date = datetime.strptime(row[0], "%Y-%m-%d")
+            if (str(row_date.month) == selected_month and str(row_date.year) == selected_year):
+                filtered_data.append(row)
+        except Exception:
+            continue
+
+    month_name = calendar.month_name[int(selected_month)]
+
+    # hitung total per kategoru
+    category_totals = defaultdict(float)
+    for row in filtered_data:
+        try:
+            category = row[2]
+            amount = float(row[3].replace(",", "").replace(".", ""))
+            category_totals[category] += amount
+        except:
+            continue
+
     return render_template("form.html", tipe="income", today=date.today(),
                            categories=income_categories,
-                           records = income_data)
+                           records = filtered_data,
+                           selected_month=selected_month,
+                           selected_year=selected_year,
+                           month_name=month_name,
+                           chart_labels=list(category_totals.keys()),
+                           chart_data=list(category_totals.values()))
 
 @app.route("/expenses", methods=["GET", "POST"])
 def expenses():
@@ -125,9 +167,40 @@ def expenses():
 
     expenses_categories = get_categories("expenses")
     expenses_data = get_data("Expenses")
+
+    # Ambil bulan & tahun dari query param, default: bulan sekarang
+    selected_month = request.args.get("month", default=str(datetime.now().month))
+    selected_year = request.args.get("year", default=str(datetime.now().year))
+
+    # Filter data berdasarkan bulan & tahun
+    filtered_data = []
+    for row in expenses_data:
+        try:
+            row_date = datetime.strptime(row[0], "%Y-%m-%d")
+            if (str(row_date.month) == selected_month and str(row_date.year) == selected_year):
+                filtered_data.append(row)
+        except Exception:
+            continue
+
+    month_name = calendar.month_name[int(selected_month)]
+
+    category_totals = defaultdict(float)
+    for row in filtered_data:
+        try:
+            category = row[2]
+            amount = float(row[3].replace(",", "").replace(".", ""))
+            category_totals[category] += amount
+        except:
+            continue
+
     return render_template("form.html", tipe="expenses", today=date.today(),
                            categories = expenses_categories,
-                           records = expenses_data)
+                           records = filtered_data,
+                           selected_month=selected_month,
+                           selected_year=selected_year,
+                           month_name=month_name,
+                           chart_labels=list(category_totals.keys()),
+                           chart_data=list(category_totals.values()))
 
 
 if __name__ == '__main__':
