@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, jsonify, render_template, request, redirect
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
@@ -6,10 +6,12 @@ import json
 from datetime import datetime, date
 import calendar
 from collections import defaultdict
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 secret_key = os.urandom(24)
 app.secret_key = secret_key
+csrf = CSRFProtect(app)
 
 
 if os.getenv("VERCEL") is None:
@@ -157,21 +159,24 @@ def dashboard():
 @app.route("/income", methods=["GET", "POST"])
 def income():
     if request.method == "POST":
-        date_income = request.form["date"]
-        item = request.form["item"]
-        category = request.form["category"]
-        amount = request.form["amount"]
+        try:
+            date_income = request.form["date"]
+            item = request.form["item"]
+            category = request.form["category"]
+            amount = request.form["amount"]
 
-        values = [[date_income, item, category, amount]]
+            values = [[date_income, item, category, amount]]
 
-        sheets_service.spreadsheets().values().append(
-            spreadsheetId=SPREADSHEET_ID,
-            range="Income!A2:D",
-            valueInputOption="USER_ENTERED",
-            body={"values": values}
-        ).execute()
+            sheets_service.spreadsheets().values().append(
+                spreadsheetId=SPREADSHEET_ID,
+                range="Income!A2:D",
+                valueInputOption="USER_ENTERED",
+                body={"values": values}
+            ).execute()
 
-        return redirect("/income")
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
     
     income_categories = get_categories("income")
     income_data = get_data("Income")
@@ -215,21 +220,24 @@ def income():
 @app.route("/expenses", methods=["GET", "POST"])
 def expenses():
     if request.method == "POST":
-        date_expenses = request.form["date"]
-        item = request.form["item"]
-        category = request.form["category"]
-        amount = request.form["amount"]
+        try:
+            date_expenses = request.form["date"]
+            item = request.form["item"]
+            category = request.form["category"]
+            amount = request.form["amount"]
 
-        values = [[date_expenses, item, category, amount]]
+            values = [[date_expenses, item, category, amount]]
 
-        sheets_service.spreadsheets().values().append(
-            spreadsheetId=SPREADSHEET_ID,
-            range="Expenses!A2:D",
-            valueInputOption="USER_ENTERED",
-            body={"values": values}
-        ).execute()
+            sheets_service.spreadsheets().values().append(
+                spreadsheetId=SPREADSHEET_ID,
+                range="Expenses!A2:D",
+                valueInputOption="USER_ENTERED",
+                body={"values": values}
+            ).execute()
 
-        return redirect("/expenses")
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
 
     expenses_categories = get_categories("expenses")
     expenses_data = get_data("Expenses")
@@ -267,6 +275,70 @@ def expenses():
                            month_name=month_name,
                            chart_labels=list(category_totals.keys()),
                            chart_data=list(category_totals.values()))
+
+
+def get_sheet_data_with_index(sheet_name):
+    """
+    Mengembalikan list data beserta index baris aslinya di Google Sheets.
+    Misalnya row 2 berarti index=2 (karena header di A1).
+    """
+    result = sheets_service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{sheet_name}!A2:D"
+    ).execute()
+
+    values = result.get('values', [])
+    data_with_index = []
+
+    for i, row in enumerate(values, start=2):  # mulai dari baris 2 karena A1 header
+        data_with_index.append({
+            "index": i,
+            "data": row
+        })
+
+    return data_with_index
+
+# Edit record
+@app.route("/edit/<sheet>/<int:row_index>", methods=["POST"])
+def edit_record(sheet, row_index):
+    item = request.form.get("item")
+    category = request.form.get("category")
+    date_val = request.form.get("date")
+    amount = request.form.get("amount")
+
+    sheet_row = row_index + 2
+    values = [[date_val, item, category, amount]]
+
+    try:
+        sheets_service.spreadsheets().values().update(
+            spreadsheetId=SPREADSHEET_ID,
+            range=f"{sheet.capitalize()}!A{sheet_row}:D{sheet_row}",
+            valueInputOption="USER_ENTERED",
+            body={"values": values}
+        ).execute()
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+# Delete record
+@app.route("/delete/<sheet>/<int:row_index>", methods=["POST"])
+def delete_record(sheet, row_index):
+    try:
+        # Google Sheets baris data dimulai dari baris ke-2 (karena baris ke-1 adalah header)
+        sheet_row = row_index + 2
+
+        # Hapus data dari kolom A sampai D pada baris tersebut
+        sheets_service.spreadsheets().values().clear(
+            spreadsheetId=SPREADSHEET_ID,
+            range=f"{sheet.capitalize()}!A{sheet_row}:D{sheet_row}",
+            body={}
+        ).execute()
+
+        return jsonify({"status": "success", "message": "Record successfully deleted."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to delete record: {e}"})
+
 
 
 if __name__ == '__main__':

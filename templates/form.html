@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 <style>
     /* Header style: gray text, not bold */
     table.dataTable thead th {
@@ -50,8 +51,7 @@
                     <nav class="flex pb-4" aria-label="Breadcrumb">
                         <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                             <li class="inline-flex items-center">
-                                <a href="{{ url_for('dashboard') }}"
-                                    class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600
+                                <a href="{{ url_for('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600
                                     {% if request.path == '/dashboard' %}
                     text-gray-400
                     {% else %}
@@ -98,7 +98,8 @@
                     <p class="text-gray-500 text-sm">Make sure everything’s filled out correctly</p>
                 </div>
 
-                <form method="POST" class="space-y-4">
+                <form id="addRecordForm" method="POST" class="space-y-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="space-y-2">
                         <div class="mb-1">
                             <label class="block text-sm font-bold text-gray-700">Item</label>
@@ -139,10 +140,22 @@
                         </div>
                     </div>
 
-                    <button type="submit"
-                        class="mt-2 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-6 rounded-md font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                        Simpan
+                    <button type="submit" id="submitButton" class="mt-2 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-6 rounded-md font-medium
+           hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 cursor-pointer
+           flex items-center justify-center gap-2">
+
+                        <!-- Spinner -->
+                        <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+
+                        <!-- Button text -->
+                        <span id="submitText">Save</span>
                     </button>
+
                 </form>
 
                 <div class="mt-10">
@@ -156,7 +169,7 @@
             </div>
         </div>
         <div class="w-full md:w-2/3 space-y-6">
-            <div class="bg-white rounded-t-3xl md:rounded-lg">
+            <div class="bg-white rounded-t-4xl md:rounded-xl">
                 <div class="space-y-6 p-6">
                     <div class="md:flex items-center justify-between mb-6">
                         <div class="text-center md:text-left space-y-2">
@@ -168,7 +181,7 @@
                         <div class="mb-4 md:flex md:justify-end space-x-2">
                             <!-- Filter Section -->
                             <form method="get"
-                                class="w-full flex flex-col sm:flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
+                                class="w-full flex flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
                                 <!-- Month Selector -->
                                 <div class="w-full sm:w-auto">
                                     <label for="month" class="sr-only">Month</label>
@@ -196,10 +209,10 @@
                                 </div>
 
                                 <!-- Submit Button -->
-                                <div class="w-full sm:w-auto">
+                                <div class="w-1/2">
                                     <button type="submit"
-                                        class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        Filter
+                                        class="w-full inline-flex items-center justify-center px-3 md:px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                        <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </form>
@@ -248,16 +261,24 @@
                                             hover:text-blue-800 active:text-blue-900
                                             font-medium text-sm
                                             transition-all duration-200 ease-in-out
-                                            hover:underline hover:underline-offset-2">Edit
+                                            hover:underline hover:underline-offset-2"
+                                                data-modal-target="edit-record-modal"
+                                                data-modal-toggle="edit-record-modal" data-date="{{ row[0] }}"
+                                                data-item="{{ row[1] }}" data-category="{{ row[2] }}"
+                                                data-amount="{{ row[3]|replace('Rp', '')|replace('.', '')|replace(',', '')|replace(' ', '')|trim }}"
+                                                data-sheet="{{tipe}}" data-index="{{ loop.index0 }}">
+                                                Edit
                                             </button>
                                             <!-- Separator -->
                                             <span class="text-gray-300">|</span>
-                                            <button class="delete-product cursor-pointer
+                                            <button class="delete-record cursor-pointer
                                             text-red-600 hover:text-red-800 active:text-red-900
                                             font-medium text-sm
                                             py-1
                                             transition-all duration-200 ease-in-out
-                                            hover:underline hover:underline-offset-2">Delete</button>
+                                            hover:underline hover:underline-offset-2"
+                                            data-url="{{ url_for('delete_record', sheet=tipe, row_index=loop.index0) }}">
+                                            Delete</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -273,6 +294,106 @@
                             </tfoot>
                         </table>
                     </div>
+
+                    <section id="modal-record-product">
+                        <!-- Main modal -->
+                        <div id="edit-record-modal" tabindex="-1"
+                            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+                            <div
+                                class="relative p-4 w-full max-w-xl max-h-full scale-95 transition-transform duration-300 ease-out">
+                                <!-- Modal content -->
+                                <div class="relative bg-white rounded-lg shadow-sm">
+                                    <!-- Modal header -->
+                                    <div
+                                        class="flex items-center justify-between p-4 md:p-5 rounded-t border-b border-gray-300">
+                                        <div>
+                                            <h1 class="font-medium">Update {{ tipe }}</h1>
+                                            <p class="py-2 text-gray-500 text-sm">Make sure everything’s filled out
+                                                correctly</p>
+                                        </div>
+                                        <button type="button"
+                                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center cursor-pointer"
+                                            data-modal-toggle="edit-record-modal">
+                                            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close modal</span>
+                                        </button>
+                                    </div>
+                                    <!-- Modal body -->
+                                    <form id="editRecordForm" method="POST" class="p-4 md:p-5">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" id="editIndex" name="row_index">
+                                        <input type="hidden" id="editSheet" name="sheet">
+                                        <div class="grid gap-4 mb-4 grid-cols-1">
+                                            <div class="space-y-2">
+                                                <div class="mb-1">
+                                                    <label class="block text-sm font-bold text-gray-700">Item</label>
+                                                </div>
+                                                <input type="text" id="editItem" name="item" required
+                                                    placeholder="Enter item name or description"
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <div class="mb-1">
+                                                    <label class="block text-sm font-bold text-gray-700">Amount</label>
+                                                </div>
+                                                <input type="text" id="amount_display2" required
+                                                    placeholder="Enter numeric amount"
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                                <input type="hidden" id="amount_real2" name="amount">
+                                            </div>
+                                        </div>
+                                        <div class="grid gap-4 mb-4 md:grid-cols-2">
+                                            <div class="space-y-2">
+                                                <div class="mb-1">
+                                                    <label class="block text-sm font-bold text-gray-700">Date</label>
+                                                </div>
+                                                <input type="date" id="editDate" name="date" required
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <div class="mb-1">
+                                                    <label
+                                                        class="block text-sm font-bold text-gray-700">Category</label>
+                                                </div>
+                                                <select id="editCategory" name="category" required
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                                    <option value="" disabled selected>Choose</option>
+                                                    {% for category in categories %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button type="submit" id="submitButton2" class="mt-2 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-6 rounded-md font-medium
+           hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 hover:shadow-lg
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 cursor-pointer
+           flex items-center justify-center gap-2">
+
+                                            <!-- Spinner -->
+                                            <svg id="loadingSpinner2" class="hidden animate-spin h-5 w-5 text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4" />
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                            </svg>
+
+                                            <!-- Button text -->
+                                            <span id="submitText2">Save</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
             </div>
         </div>
@@ -420,6 +541,298 @@
             if (!/\d/.test(e.key)) e.preventDefault();
         });
     });
+</script>
+
+<!--Swal mixin-->
+<script>
+    // Mixin untuk toast notifikasi
+    const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+        }
+    });
+</script>
+
+<!--add form-->
+<script>
+    const addForm = document.getElementById("addRecordForm");
+    const amountInput = document.getElementById("amount_display");
+    const amountHidden = document.getElementById("amount_real");
+    const submitBtn = document.getElementById("submitButton");
+    const submitText = document.getElementById("submitText");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+
+    if (amountInput) {
+        amountInput.addEventListener('input', () => {
+            const raw = amountInput.value.replace(/[^\d]/g, '');
+            amountInput.value = new Intl.NumberFormat('id-ID').format(raw);
+            amountHidden.value = raw;
+        });
+    }
+
+    if (addForm) {
+        addForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // loading
+            submitBtn.disabled = true;
+            loadingSpinner.classList.remove("hidden");
+            submitText.textContent = "Saving...";
+
+            const formData = new FormData(addForm);
+            fetch(window.location.pathname, {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Data saved'
+                        }).then(() => window.location.reload());
+                    } else {
+                        Toast.fire({
+                            icon: 'error',
+                            title: data.message || 'Failed to save data'
+                        });
+                    }
+                })
+                .catch(err => {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Opps! an error occurred',
+                        text: err.message
+                    });
+                })
+                .finally(() => {
+                    // Reset tombol setelah selesai
+                    submitBtn.disabled = false;
+                    loadingSpinner.classList.add("hidden");
+                    submitText.textContent = "Save";
+                });
+        });
+    }
+</script>
+
+<!-- Modal edit -->
+<script>
+    // Buka modal dan isi field saat tombol edit diklik
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const date = button.dataset.date;
+            const item = button.dataset.item;
+            const category = button.dataset.category;
+            const amount = button.dataset.amount;
+            const sheet = button.dataset.sheet;
+            const index = button.dataset.index;
+
+            // Isi ke form
+            document.getElementById("editDate").value = date;
+            document.getElementById("editItem").value = item;
+
+            // Bersihkan dan isi amount
+            const rawAmount = amount.replace(/[^\d]/g, '');
+            document.getElementById("amount_display2").value = new Intl.NumberFormat('id-ID').format(rawAmount);
+            document.getElementById("amount_real2").value = rawAmount;
+
+            // Pilih kategori yang cocok
+            const select = document.getElementById("editCategory");
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === category) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+
+            // Disable "Choose" jika ada
+            if (select.options[0].value === "") {
+                select.options[0].disabled = true;
+            }
+
+            document.getElementById("editSheet").value = sheet;
+            document.getElementById("editIndex").value = index;
+
+            // Tampilkan modal
+            const modal = document.getElementById('edit-record-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            }
+        });
+    });
+
+    // AJAX Submit
+    const form = document.getElementById('editRecordForm');
+    const submitBtn2 = document.getElementById("submitButton2");
+    const submitText2 = document.getElementById("submitText2");
+    const loadingSpinner2 = document.getElementById("loadingSpinner2");
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // loading
+            submitBtn2.disabled = true;
+            loadingSpinner2.classList.remove("hidden");
+            submitText2.textContent = "Saving...";
+
+            const sheet = document.getElementById("editSheet").value;
+            const rowIndex = document.getElementById("editIndex").value;
+
+            const formData = new FormData(form);
+
+            fetch(`/edit/${sheet}/${rowIndex}`, {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        Toast.fire({
+                            icon: "success",
+                            title: "Data saved"
+                        }).then(() => window.location.reload());
+                    } else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Gagal",
+                            text: data.message || "Failed to saved data"
+                        });
+                    }
+                })
+                .catch(err => {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Oops! an error occurred",
+                        text: err.message
+                    });
+                })
+                .finally(() => {
+                    // Reset tombol setelah selesai
+                    submitBtn2.disabled = false;
+                    loadingSpinner2.classList.add("hidden");
+                    submitText2.textContent = "Save";
+                });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const displayInput = document.getElementById("amount_display2");
+        const realInput = document.getElementById("amount_real2");
+
+        // Format angka pakai titik
+        function formatWithDot(number) {
+            return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Hapus semua karakter kecuali angka
+        function getRawNumber(str) {
+            return str.replace(/[^\d]/g, "");
+        }
+
+        displayInput.addEventListener("input", function () {
+            const raw = getRawNumber(this.value);
+            const formatted = formatWithDot(raw);
+            this.value = formatted;
+            realInput.value = raw;
+        });
+
+        // Hanya izinkan angka saat diketik
+        displayInput.addEventListener("keypress", function (e) {
+            if (!/\d/.test(e.key)) e.preventDefault();
+        });
+    });
+
+    // Fungsi untuk buka modal
+    function openModal(modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+        }, 10);
+    }
+
+    // Fungsi untuk tutup modal
+    function closeModal(modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Jalankan handler global untuk tombol dengan data-modal-toggle
+    document.querySelectorAll('[data-modal-toggle]').forEach(trigger => {
+        const targetId = trigger.getAttribute('data-modal-toggle');
+        const modal = document.getElementById(targetId);
+
+        if (!modal) return;
+
+        trigger.addEventListener('click', () => openModal(modal));
+
+        // Tutup modal via tombol close di dalam modal
+        modal.querySelectorAll(`[data-modal-toggle="${targetId}"]`).forEach(btn => {
+            btn.addEventListener('click', () => closeModal(modal));
+        });
+    });
+</script>
+
+<!--Delete-->
+<script>
+  document.querySelectorAll('.delete-record').forEach(el => {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      const url = this.getAttribute('data-url');
+
+      Swal.fire({
+        title: 'Are you sure you want to delete this record?',
+        text: "Deleted data cannot be recovered.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrfToken
+            },
+            body: ''
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              Toast.fire({
+                icon: 'success',
+                title: data.message || 'Record successfully deleted.'
+              }).then(() => location.reload());
+            } else {
+              Toast.fire({
+                icon: 'error',
+                title: data.message || 'Failed to delete record.'
+              });
+            }
+          })
+          .catch(() => {
+            Toast.fire({
+              icon: 'error',
+              title: 'A server error occurred.'
+            });
+          });
+        }
+      });
+    });
+  });
 </script>
 
 {% endblock %}
