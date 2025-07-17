@@ -134,10 +134,29 @@ def pdf_with_pdfshift(html_content, filename="report.pdf"):
 def index():
     return redirect('dashboard')
 
+# hitung growth
+def get_growth(data):
+    # Ambil dua bulan terakhir yang tidak nol
+    nonzero = [v for v in reversed(data) if v != 0]
+    if len(nonzero) >= 2 and nonzero[1] != 0:
+        growth = ((nonzero[0] - nonzero[1]) / nonzero[1]) * 100
+        return round(growth, 1)
+    
+def get_growth_series(values):
+    growth_list = []
+    for i in range(len(values)):
+        if i == 0 or values[i - 1] == 0:
+            growth_list.append(0)
+        else:
+            growth = ((values[i] - values[i - 1]) / abs(values[i - 1])) * 100
+            growth_list.append(round(growth, 1))
+    return growth_list
+    
 # Dashboard page
 @app.route("/dashboard")
 def dashboard():
     selected_year = request.args.get("year", datetime.now().year, type=int)
+    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expenses_data = get_data("Expenses")
@@ -180,11 +199,28 @@ def dashboard():
         chart_expenses.append(data["expenses"])
         chart_balance.append(data["balance"])
 
+    # growth bulan ini
+    net_balance = [i - e for i, e in zip(chart_income, chart_expenses)]
+    income_growth = get_growth(chart_income)
+    expenses_growth = get_growth(chart_expenses)
+    net_growth = get_growth(net_balance)
+
+    # growth series satu tahun
+    income_growth_series = get_growth_series(chart_income)
+    expenses_growth_series = get_growth_series(chart_expenses)
+    net_growth_series = get_growth_series(net_balance)
+
     return render_template("dashboard.html", summary_data=summary_data, selected_year=str(selected_year),
                            chart_labels=chart_labels,
                            chart_income=chart_income,
                            chart_expenses=chart_expenses,
-                           chart_balance=chart_balance)
+                           chart_balance=chart_balance,
+                           income_growth=income_growth,
+                           expenses_growth=expenses_growth,
+                           net_growth=net_growth,
+                           income_growth_series=income_growth_series,
+                           expenses_growth_series=expenses_growth_series,
+                           net_growth_series=net_growth_series)
 
 # Income page
 @app.route("/income", methods=["GET", "POST"])
@@ -407,7 +443,7 @@ def delete_record(sheet, record_id):
         return jsonify({"status": "error", "message": f"Failed to delete record: {e}"})
 
 # Unduh report pdf
-@app.route('/download-pdf')
+@app.route('/report/download-pdf')
 def download_pdf():
     selected_year = request.args.get("year", datetime.now().year, type=int)
     # Ambil data dari Google Sheets
@@ -456,6 +492,17 @@ def download_pdf():
     total_expenses = sum(chart_expenses)
     total_balance = sum(chart_balance)
 
+    # growth bulan ini
+    net_balance = [i - e for i, e in zip(chart_income, chart_expenses)]
+    income_growth = get_growth(chart_income)
+    expenses_growth = get_growth(chart_expenses)
+    net_growth = get_growth(net_balance)
+
+    # growth series satu tahun
+    income_growth_series = get_growth_series(chart_income)
+    expenses_growth_series = get_growth_series(chart_expenses)
+    net_growth_series = get_growth_series(net_balance)
+
     html = render_template("report.html", summary_data=summary_data, selected_year=str(selected_year),
                            chart_labels=chart_labels,
                            chart_income=chart_income,
@@ -463,7 +510,14 @@ def download_pdf():
                            chart_balance=chart_balance,
                            total_income=total_income,
                            total_expenses=total_expenses,
-                           total_balance=total_balance)  # render HTML dengan Jinja
+                           total_balance=total_balance,
+                           income_growth=income_growth,
+                           expenses_growth=expenses_growth,
+                           net_growth=net_growth,
+                           income_growth_series=income_growth_series,
+                           expenses_growth_series=expenses_growth_series,
+                           net_growth_series=net_growth_series)  # render HTML dengan Jinja
+    
     response = requests.post(
         "https://api.pdfshift.io/v3/convert/pdf",
         headers={ "X-API-Key": PDFSHIFT_API_KEY },
@@ -481,10 +535,11 @@ def download_pdf():
     else:
         return f"PDFShift Error: {response.text}", 500
 
-
+# Unduh report pdf (testing)
 @app.route('/report')
 def report():
     selected_year = request.args.get("year", datetime.now().year, type=int)
+    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expenses_data = get_data("Expenses")
@@ -531,6 +586,17 @@ def report():
     total_expenses = sum(chart_expenses)
     total_balance = sum(chart_balance)
 
+    # growth bulan ini
+    net_balance = [i - e for i, e in zip(chart_income, chart_expenses)]
+    income_growth = get_growth(chart_income)
+    expenses_growth = get_growth(chart_expenses)
+    net_growth = get_growth(net_balance)
+
+    # growth series satu tahun
+    income_growth_series = get_growth_series(chart_income)
+    expenses_growth_series = get_growth_series(chart_expenses)
+    net_growth_series = get_growth_series(net_balance)
+
     return render_template("report.html", summary_data=summary_data, selected_year=str(selected_year),
                            chart_labels=chart_labels,
                            chart_income=chart_income,
@@ -538,7 +604,237 @@ def report():
                            chart_balance=chart_balance,
                            total_income=total_income,
                            total_expenses=total_expenses,
-                           total_balance=total_balance)
+                           total_balance=total_balance,
+                           income_growth=income_growth,
+                           expenses_growth=expenses_growth,
+                           net_growth=net_growth,
+                           income_growth_series=income_growth_series,
+                           expenses_growth_series=expenses_growth_series,
+                           net_growth_series=net_growth_series)
+
+@app.route("/report/<month>")
+def monthly_report_pdf(month):
+    # Ambil data dari Google Sheets
+    income_data = get_data("Income")
+    expense_data = get_data("Expenses")
+
+    try:
+        year, mon = map(int, month.split('-'))
+    except ValueError:
+        return "Invalid month format. Use YYYY-MM.", 400
+
+    def filter_by_month(data, y, m):
+        filtered = []
+        for row in data:
+            try:
+                row_date = datetime.strptime(row[1], "%Y-%m-%d")
+                if row_date.month == m and row_date.year == y:
+                    filtered.append(row)
+            except:
+                continue
+        return filtered
+
+    def get_total(data):
+        total = 0
+        for row in data:
+            try:
+                amount = float(row[4].replace(",", "").replace(".", ""))
+                total += amount
+            except:
+                continue
+        return total
+
+    # Data bulan ini
+    income_filtered = filter_by_month(income_data, year, mon)
+    expense_filtered = filter_by_month(expense_data, year, mon)
+
+    income_totals = defaultdict(float)
+    for row in income_filtered:
+        try:
+            category = row[3]
+            amount = float(row[4].replace(",", "").replace(".", ""))
+            income_totals[category] += amount
+        except:
+            continue
+
+    expense_totals = defaultdict(float)
+    for row in expense_filtered:
+        try:
+            category = row[3]
+            amount = float(row[4].replace(",", "").replace(".", ""))
+            expense_totals[category] += amount
+        except:
+            continue
+
+    total_income = sum(income_totals.values())
+    total_expense = sum(expense_totals.values())
+    balance = total_income - total_expense
+
+    summary_data = income_filtered + expense_filtered
+    summary_data.sort(key=lambda x: x[1])
+
+    total_amount = sum(
+        float(row[4]) for row in summary_data if row[4]
+    )
     
+    # Data bulan sebelumnya
+    prev_year = year if mon > 1 else year - 1
+    prev_month = mon - 1 if mon > 1 else 12
+
+    prev_income_filtered = filter_by_month(income_data, prev_year, prev_month)
+    prev_expense_filtered = filter_by_month(expense_data, prev_year, prev_month)
+
+    prev_total_income = get_total(prev_income_filtered)
+    prev_total_expense = get_total(prev_expense_filtered)
+    prev_balance = prev_total_income - prev_total_expense
+
+    # Growth perbandingan bulan ini vs sebelumnya
+    income_growth = get_growth([prev_total_income, total_income])
+    expenses_growth = get_growth([prev_total_expense, total_expense])
+    net_growth = get_growth([prev_balance, balance])
+
+    # Nama bulan
+    month_name = calendar.month_name[mon]
+
+    html = render_template("monthly-report.html",
+        month=month,
+        selected_year=year,
+        month_name=month_name,
+        income_labels=list(income_totals.keys()),
+        income_data=list(income_totals.values()),
+        expense_labels=list(expense_totals.keys()),
+        expense_data=list(expense_totals.values()),
+        total_income=total_income,
+        total_expenses=total_expense,
+        balance=balance,
+        income_growth=income_growth,
+        expenses_growth=expenses_growth,
+        net_growth=net_growth,
+        summary_data=summary_data,
+        total_amount=total_amount
+    )
+
+    response = requests.post(
+        "https://api.pdfshift.io/v3/convert/pdf",
+        headers={ "X-API-Key": PDFSHIFT_API_KEY },
+        json={ "source": html }
+    )
+
+    if response.status_code == 200:
+        return Response(
+            response.content,
+            mimetype='application/pdf',
+            headers={
+                "Content-Disposition": "inline; filename=report.pdf"
+            }
+        )
+    else:
+        return f"PDFShift Error: {response.text}", 500
+
+# Unduh report perbulan pdf (testing)
+@app.route("/report/<month>")
+def monthly_report(month):
+    # Ambil data dari Google Sheets
+    income_data = get_data("Income")
+    expense_data = get_data("Expenses")
+
+    try:
+        year, mon = map(int, month.split('-'))
+    except ValueError:
+        return "Invalid month format. Use YYYY-MM.", 400
+
+    def filter_by_month(data, y, m):
+        filtered = []
+        for row in data:
+            try:
+                row_date = datetime.strptime(row[1], "%Y-%m-%d")
+                if row_date.month == m and row_date.year == y:
+                    filtered.append(row)
+            except:
+                continue
+        return filtered
+
+    def get_total(data):
+        total = 0
+        for row in data:
+            try:
+                amount = float(row[4].replace(",", "").replace(".", ""))
+                total += amount
+            except:
+                continue
+        return total
+
+    # Data bulan ini
+    income_filtered = filter_by_month(income_data, year, mon)
+    expense_filtered = filter_by_month(expense_data, year, mon)
+
+    income_totals = defaultdict(float)
+    for row in income_filtered:
+        try:
+            category = row[3]
+            amount = float(row[4].replace(",", "").replace(".", ""))
+            income_totals[category] += amount
+        except:
+            continue
+
+    expense_totals = defaultdict(float)
+    for row in expense_filtered:
+        try:
+            category = row[3]
+            amount = float(row[4].replace(",", "").replace(".", ""))
+            expense_totals[category] += amount
+        except:
+            continue
+
+    total_income = sum(income_totals.values())
+    total_expense = sum(expense_totals.values())
+    balance = total_income - total_expense
+
+    summary_data = income_filtered + expense_filtered
+    summary_data.sort(key=lambda x: x[1])
+
+    total_amount = sum(
+        float(row[4]) for row in summary_data if row[4]
+    )
+
+    # Data bulan sebelumnya
+    prev_year = year if mon > 1 else year - 1
+    prev_month = mon - 1 if mon > 1 else 12
+
+    prev_income_filtered = filter_by_month(income_data, prev_year, prev_month)
+    prev_expense_filtered = filter_by_month(expense_data, prev_year, prev_month)
+
+    prev_total_income = get_total(prev_income_filtered)
+    prev_total_expense = get_total(prev_expense_filtered)
+    prev_balance = prev_total_income - prev_total_expense
+
+    # Growth perbandingan bulan ini vs sebelumnya
+    income_growth = get_growth([prev_total_income, total_income])
+    expenses_growth = get_growth([prev_total_expense, total_expense])
+    net_growth = get_growth([prev_balance, balance])
+
+    # Nama bulan
+    month_name = calendar.month_name[mon]
+
+    return render_template("monthly-report.html",
+        month=month,
+        selected_year=year,
+        month_name=month_name,
+        income_labels=list(income_totals.keys()),
+        income_data=list(income_totals.values()),
+        expense_labels=list(expense_totals.keys()),
+        expense_data=list(expense_totals.values()),
+        total_income=total_income,
+        total_expenses=total_expense,
+        balance=balance,
+        income_growth=income_growth,
+        expenses_growth=expenses_growth,
+        net_growth=net_growth,
+        summary_data=summary_data,
+        total_amount=total_amount
+    )
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -235,7 +235,7 @@
                                         class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Category</th>
                                     <th
-                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Amount
                                     </th>
                                     <th
@@ -253,7 +253,8 @@
                                     <td class="px-3 py-2 whitespace-nowrap text-gray-900">{{ loop.index }}</td>
                                     <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[2] }}</td>
                                     <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[3] }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap currency">{{ row[4]|format_rupiah }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ row[4]|format_rupiah
+                                        }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap">{{ row[1]|format_date }}</td>
                                     <td class="px-3 py-2">
                                         <div class="flex items-center space-x-2">
@@ -289,7 +290,8 @@
                                 <tr>
                                     <th colspan="3" class="px-3 py-2 text-right font-medium text-sm text-gray-700">Total
                                     </th>
-                                    <th id="total-amount" class="px-2 py-2 text-sm text-gray-900 currency"></th>
+                                    <th id="total-amount" class="px-2 py-2 text-sm text-right text-gray-900 currency">
+                                    </th>
                                     <th colspan="2"></th>
                                 </tr>
                             </tfoot>
@@ -484,8 +486,8 @@
             datasets: [{
                 label: 'Total',
                 data: data,
-                backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                borderColor: 'rgba(59, 130, 246, 1)',
+                backgroundColor: '#3b82f630', // 25% opacity
+                borderColor: '#3b82f6',
                 borderWidth: 1
             }]
         },
@@ -497,8 +499,7 @@
                 tooltip: {
                     callbacks: {
                         label: function (context) {
-                            const value = context.raw || 0;
-                            return 'Rp ' + value.toLocaleString();
+                            return 'Rp ' + (context.raw || 0).toLocaleString();
                         }
                     }
                 }
@@ -506,11 +507,17 @@
             scales: {
                 x: {
                     beginAtZero: true,
+                    grid: { color: '#f3f4f6' },
                     ticks: {
+                        color: '#6b7280',
                         callback: function (value) {
                             return 'Rp ' + value.toLocaleString();
                         }
                     }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: '#6b7280' }
                 }
             }
         }

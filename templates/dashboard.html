@@ -37,6 +37,11 @@
         transform: translateY(-50%);
     }
 
+    th.hidden,
+    td.hidden {
+        display: none;
+    }
+
     .currency {
         font-family: 'Courier New', monospace;
     }
@@ -102,7 +107,7 @@
                     <!-- Total Pendapatan -->
                     <div
                         class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                        <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center justify-between">
                             <h3 class="text-sm font-medium text-gray-600">Income</h3>
                             <div class="p-1 md:p-2 bg-emerald-50 rounded-lg">
                                 <svg class="w-4 h-4 md:w-5 md:h-5 text-emerald-600" fill="none" stroke="currentColor"
@@ -112,19 +117,20 @@
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-lg font-bold text-emerald-600" id="totalIncome">
+                        <div class="font-bold text-emerald-600" id="totalIncome">
                             Rp {{ "{:,}".format(chart_income | sum).replace(",", ".") }}
                         </div>
-                        <div class="text-sm text-gray-500 mt-2">
-                            <span class="text-emerald-600">{{ "+{:.1f}%".format(((chart_income | sum) / (chart_income |
-                                sum * 0.9) - 1) * 100) if chart_income | sum > 0 else "0%" }}</span> from last month
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-emerald-600">
+                                {{ "{:+.1f}%".format(income_growth) if income_growth is not none else "N/A" }}
+                            </span> from last month
                         </div>
                     </div>
 
                     <!-- Total Pengeluaran -->
                     <div
                         class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                        <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center justify-between">
                             <h3 class="text-sm font-medium text-gray-600">Expenses</h3>
                             <div class="p-1 md:p-2 bg-red-50 rounded-lg">
                                 <svg class="w-4 h-4 md:w-5 md:h-5 text-red-600" fill="none" stroke="currentColor"
@@ -134,19 +140,20 @@
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-lg font-bold text-red-600" id="totalExpenses">
+                        <div class="font-bold text-red-600" id="totalExpenses">
                             Rp {{ "{:,}".format(chart_expenses | sum).replace(",", ".") }}
                         </div>
-                        <div class="text-sm text-gray-500 mt-2">
-                            <span class="text-red-600">{{ "+{:.1f}%".format(((chart_expenses | sum) / (chart_expenses |
-                                sum * 0.92) - 1) * 100) if chart_expenses | sum > 0 else "0%" }}</span> from last month
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-red-600">
+                                {{ "{:+.1f}%".format(expenses_growth) if expenses_growth is not none else "N/A" }}
+                            </span> from last month
                         </div>
                     </div>
                 </div>
                 <!-- Saldo Bersih -->
                 <div
                     class="bg-white rounded-xl border border-gray-200 p-3 mb-8 hover:shadow-md transition-shadow duration-200">
-                    <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center justify-between">
                         <h3 class="text-sm font-medium text-gray-600">Balance</h3>
                         <div class="p-1 md:p-2 bg-blue-50 rounded-lg">
                             <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor"
@@ -157,45 +164,35 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="text-lg font-bold {% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
+                    <div class="font-bold {% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
                         id="netBalance">
                         Rp {{ "{:,}".format((chart_income | sum) - (chart_expenses | sum)).replace(",", ".") }}
                     </div>
-                    <div class="text-sm text-gray-500 mt-2">
-                        <span
-                            class="{% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
-                            {{ "{:+.1f}%".format(((((chart_income | sum) - (chart_expenses | sum)) / (((chart_income
-                            | sum) - (chart_expenses | sum)) * 0.77) - 1) * 100) if ((chart_income | sum) -
-                            (chart_expenses | sum)) != 0 else 0) }}
+                    <div class="text-xs text-gray-500 mt-1">
+                        <span class="{% if net_growth >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
+                            {{ "{:+.1f}%".format(net_growth) if net_growth is not none else "N/A" }}
                         </span> from last month
                     </div>
                 </div>
 
                 <!-- Chart Container -->
                 <div>
-                    <div class="flex justify-center gap-4 mb-6 p-4 bg-orange-100 rounded-lg">
-                        <div id="chartLegend" class="flex gap-4 flex-wrap justify-center">
-                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                data-dataset="0">
-                                <span class="w-4 h-4 bg-emerald-500 rounded-full"></span>Income
-                            </div>
-                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                data-dataset="1">
-                                <span class="w-4 h-4 bg-red-500 rounded-full"></span>Expenses
-                            </div>
-                            <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                data-dataset="2">
-                                <span class="w-4 h-4 bg-blue-500 rounded-full"></span>Balance
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Chart Wrapper -->
-                    <div class="relative h-72 w-full">
+                    <div class="relative h-72 w-full my-8">
+                        <h2 class="text-lg mb-3 text-center">Overview</h2>
                         <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
                             data-income='{{ chart_income | tojson | safe }}'
                             data-expenses='{{ chart_expenses | tojson | safe }}'
                             data-balance='{{ chart_balance | tojson | safe }}'>
+                        </canvas>
+                    </div>
+
+                    <div class="relative h-72 w-full mt-16 mb-8">
+                        <h2 class="text-lg mb-3 text-center">Growth (%)</h2>
+                        <canvas id="growthChart" data-labels='{{ chart_labels | tojson }}'
+                            data-growth-income='{{ income_growth_series | tojson }}'
+                            data-growth-expenses='{{ expenses_growth_series | tojson }}'
+                            data-growth-balance='{{ net_growth_series | tojson }}'>
                         </canvas>
                     </div>
                 </div>
@@ -241,26 +238,26 @@
                     </div>
 
                     <div class="overflow-x-auto w-full py-4">
-                        <table id="records-table"
-                            class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200">
+                        <table id="records-table" class="w-full text-sm divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr class="bg-gray-50">
+                                    <th class="hidden">SortKey</th>
                                     <th
                                         class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Month
                                     </th>
                                     <th
-                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-3 py-2 text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
                                         Income</th>
                                     <th
-                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-3 py-2 text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
                                         Expenses</th>
                                     <th
-                                        class="px-3 py-2 text-left text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-3 py-2 text-xs text-right font-medium text-gray-500 uppercase tracking-wider">
                                         Balance
                                     </th>
                                     <th
-                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-3 py-2 text-center items-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Action
                                     </th>
                                 </tr>
@@ -268,6 +265,7 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 {% for month, data in summary_data %}
                                 <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 text-sm">
+                                    <td class="hidden">{{ month }}</td>
                                     <td class="px-3 py-2 capitalize whitespace-nowrap">{{ month | format_month }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ data.income |
                                         format_rupiah }}
@@ -279,8 +277,8 @@
                                         class="px-3 py-2 whitespace-nowrap currency text-right {{ 'text-green-600' if data.balance >= 0 else 'text-red-600' }}">
                                         {{ data.balance | format_rupiah }}</td>
                                     <td class="px-3 py-2">
-                                        <a href="#" target="_blank"
-                                            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 text-sm font-medium rounded-md transition duration-200 shadow">
+                                        <a href="{{ url_for('monthly_report_pdf', month=month) }}" target="_blank"
+                                            class="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded-md transition-colors duration-200 border border-gray-200 cursor-pointer">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -302,15 +300,17 @@
                             </tfoot>
                         </table>
                     </div>
-                    <a href="{{ url_for('download_pdf') }}" target="_blank"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V4" />
-                        </svg>
-                        Download PDF
-                    </a>
+                    <div class="flex flex-row justify-end">
+                        <a href="{{ url_for('download_pdf') }}" target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V4" />
+                            </svg>
+                            Report (PDF)
+                        </a>
+                        <!--
                     <a href="{{ url_for('report') }}" target="_blank"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -319,8 +319,8 @@
                                 d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V4" />
                         </svg>
                         View PDF
-                    </a>
-
+                    </a>-->
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,6 +332,7 @@
 <script>
     $(document).ready(function () {
         $('#records-table').DataTable({
+            order: [[0, 'asc']],
             responsive: {
                 details: { type: 'column', target: 'tr' }
             },
@@ -342,7 +343,7 @@
                 info: "Showing _TOTAL_ entries",
                 zeroRecords: "No records found"
             },
-            
+
             columnDefs: [{
                 searchable: false,
                 orderable: false,
@@ -434,35 +435,35 @@
                 labels: shortLabels,
                 datasets: [
                     {
-                        label: 'Pendapatan',
+                        label: 'Income',
                         data: income,
                         borderColor: '#10b981',
-                        backgroundColor: 'rgba(16,185,129,0.1)',
-                        tension: 0,
+                        backgroundColor: '#10b98115',
+                        tension: 0.3,
                         pointRadius: 0,
                         fill: 'origin',
-                        borderWidth: 1
+                        borderWidth: 2
                     },
                     {
-                        label: 'Pengeluaran',
+                        label: 'Expenses',
                         data: expenses,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239,68,68,0.1)',
-                        tension: 0,
+                        borderColor: '#f59e0b',
+                        backgroundColor: '#f59e0b15',
+                        tension: 0.3,
                         pointRadius: 0,
                         fill: 'origin',
-                        borderWidth: 1
+                        borderWidth: 2
                     },
                     {
-                        label: 'Saldo',
+                        label: 'Balance',
                         data: balance,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59,130,246,0.1)',
-                        tension: 0,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
                         pointRadius: 0,
                         fill: false,
-                        borderDash: [5, 5],
-                        borderWidth: 1
+                        borderDash: [6, 4],
+                        borderWidth: 2
                     }
                 ]
             },
@@ -474,12 +475,14 @@
                     intersect: false
                 },
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: true,
+                        labels: { color: '#6b7280' }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function (context) {
-                                const value = context.parsed.y;
-                                return `${context.dataset.label}: Rp ${formatShortCurrency(value)}`;
+                                return `${context.dataset.label}: ${Math.round(context.parsed.y)}`;
                             }
                         }
                     }
@@ -487,29 +490,127 @@
                 scales: {
                     y: {
                         ticks: {
+                            color: '#6b7280',
                             callback: function (value) {
                                 return 'Rp ' + formatShortCurrency(value);
                             }
                         },
-                        grid: { color: '#e5e7eb' }
+                        grid: { color: '#f3f4f6' }
                     },
                     x: {
+                        ticks: { color: '#6b7280' },
                         grid: { display: false }
                     }
                 }
             }
         });
+    });
+</script>
 
-        // Custom legend toggle
-        document.querySelectorAll(".legend-item").forEach((el) => {
-            el.addEventListener("click", () => {
-                const index = parseInt(el.dataset.dataset);
-                const meta = chart.getDatasetMeta(index);
-                meta.hidden = meta.hidden === null ? true : !meta.hidden;
-                chart.update();
-                el.style.opacity = meta.hidden ? "0.4" : "1";
+<!--GROWTH CHART-->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const gctx = document.getElementById("growthChart");
+
+        if (gctx) {
+            const labels = JSON.parse(gctx.dataset.labels || "[]");
+            const incomeGrowth = JSON.parse(gctx.dataset.growthIncome || "[]");
+            const expensesGrowth = JSON.parse(gctx.dataset.growthExpenses || "[]");
+            const balanceGrowth = JSON.parse(gctx.dataset.growthBalance || "[]");
+
+            const shortLabels = labels.map(month => {
+                const map = {
+                    "January": "Jan", "February": "Feb", "March": "Mar",
+                    "April": "Apr", "May": "Mei", "June": "Jun",
+                    "July": "Jul", "August": "Agt", "September": "Sep",
+                    "October": "Okt", "November": "Nov", "December": "Des"
+                };
+                return map[month] || month;
             });
-        });
+
+            new Chart(gctx, {
+                type: 'line',
+                data: {
+                    labels: shortLabels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeGrowth,
+                            borderColor: '#10b981',
+                            backgroundColor: '#10b98115',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expenses',
+                            data: expensesGrowth,
+                            borderColor: '#f59e0b',
+                            backgroundColor: '#f59e0b15',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Balance',
+                            data: balanceGrowth,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'transparent',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 0,
+                            borderDash: [6, 4],
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#6b7280' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.dataset.label}: ${Math.round(context.parsed.y)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#6b7280',
+                                callback: function (value) {
+                                    return Math.round(value);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Growth (%)',
+                                color: '#6b7280'
+                            },
+                            grid: {
+                                color: '#f3f4f6'
+                            }
+                        },
+                        x: {
+                            ticks: { color: '#6b7280' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 

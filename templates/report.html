@@ -19,6 +19,12 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     <style>
+        @page {
+            size: A4;
+            /* atau bisa: size: A4 portrait; */
+            margin: 20mm;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -32,7 +38,7 @@
 
 <body class="bg-white flex flex-col p-0 md:p-0 min-h-screen w-full text-gray-800">
     <!-- Main Content -->
-    <div class="container mx-auto py-12 px-16 w-full">
+    <div class="container mx-auto w-full">
         <section class="w-full text-gray-800 text">
             <div class="space-y-6">
                 <div class="border-b border-gray-200 mb-6">
@@ -46,134 +52,89 @@
                     </div>
                 </div>
 
-                <div class="text-left space-y-1">
-                    <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
-                    <p class="text-gray-500 text-sm">Displays charts of total income, expenses, and financial balance</p>
-                </div>
-
-                <div class="flex flex-row">
-                    <div class="flex flex-col w-2/3">
-                        <!-- Chart Container -->
-                            <div class="flex justify-center gap-4 mb-6 p-4 bg-orange-100 rounded-lg">
-                                <div id="chartLegend" class="flex gap-4 flex-wrap justify-center">
-                                    <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                        data-dataset="0">
-                                        <span class="w-4 h-4 bg-emerald-500 rounded-full"></span>Income
-                                    </div>
-                                    <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                        data-dataset="1">
-                                        <span class="w-4 h-4 bg-red-500 rounded-full"></span>Expenses
-                                    </div>
-                                    <div class="legend-item flex items-center gap-2 cursor-pointer text-sm text-gray-700"
-                                        data-dataset="2">
-                                        <span class="w-4 h-4 bg-blue-500 rounded-full"></span>Balance
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Chart Wrapper -->
-                            <div class="flex relative h-72 w-2/3">
-                                <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
-                                    data-income='{{ chart_income | tojson | safe }}'
-                                    data-expenses='{{ chart_expenses | tojson | safe }}'
-                                    data-balance='{{ chart_balance | tojson | safe }}'>
-                                </canvas>
-                            </div>
+                <div class="space-y-6 mb-6">
+                    <div class="text-left space-y-1">
+                        <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
+                        <p class="text-gray-500 text-sm">Monthly summary of financial records</p>
                     </div>
-                    <div class="flex w-1/3 justify-end">
-                        <!-- Summary Cards -->
-                        <div class="grid grid-cols-1 gap-4">
-                            <!-- Total Pendapatan -->
-                            <div
-                                class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                                <div class="flex items-center justify-between mb-1">
-                                    <h3 class="text-sm font-medium text-gray-600">Income</h3>
-                                    <div class="p-1 md:p-2 bg-emerald-50 rounded-lg">
-                                        <svg class="w-4 h-4 md:w-5 md:h-5 text-emerald-600" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="text-lg font-bold text-emerald-600" id="totalIncome">
-                                    Rp {{ "{:,}".format(chart_income | sum).replace(",", ".") }}
-                                </div>
-                                <div class="text-sm text-gray-500 mt-2">
-                                    <span class="text-emerald-600">{{ "+{:.1f}%".format(((chart_income |
-                                        sum) / (chart_income |
-                                        sum * 0.9) - 1) * 100) if chart_income | sum > 0 else "0%" }}</span>
-                                    from last month
+
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Total Pendapatan -->
+                        <div
+                            class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="text-sm font-medium text-gray-600">Income</h3>
+                                <div class="p-1 md:p-2 bg-emerald-50 rounded-lg">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-emerald-600" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
                                 </div>
                             </div>
+                            <div class="text-lg font-bold text-emerald-600" id="totalIncome">
+                                Rp {{ "{:,}".format(chart_income | sum).replace(",", ".") }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">
+                                <span class="text-emerald-600">
+                                    {{ "{:+.1f}%".format(income_growth) if income_growth is not none else "N/A" }}
+                                </span>
+                                from last month
+                            </div>
+                        </div>
 
-                            <!-- Total Pengeluaran -->
-                            <div
-                                class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                                <div class="flex items-center justify-between mb-1">
-                                    <h3 class="text-sm font-medium text-gray-600">Expenses</h3>
-                                    <div class="p-1 md:p-2 bg-red-50 rounded-lg">
-                                        <svg class="w-4 h-4 md:w-5 md:h-5 text-red-600" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="text-lg font-bold text-red-600" id="totalExpenses">
-                                    Rp {{ "{:,}".format(chart_expenses | sum).replace(",", ".") }}
-                                </div>
-                                <div class="text-sm text-gray-500 mt-2">
-                                    <span class="text-red-600">{{ "+{:.1f}%".format(((chart_expenses | sum)
-                                        / (chart_expenses |
-                                        sum * 0.92) - 1) * 100) if chart_expenses | sum > 0 else "0%"
-                                        }}</span> from last month
+                        <!-- Total Pengeluaran -->
+                        <div
+                            class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="text-sm font-medium text-gray-600">Expenses</h3>
+                                <div class="p-1 md:p-2 bg-red-50 rounded-lg">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-red-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                    </svg>
                                 </div>
                             </div>
+                            <div class="text-lg font-bold text-red-600" id="totalExpenses">
+                                Rp {{ "{:,}".format(chart_expenses | sum).replace(",", ".") }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">
+                                <span class="text-red-600">
+                                    {{ "{:+.1f}%".format(expenses_growth) if expenses_growth is not none else "N/A"
+                                    }}
+                                </span> from last month
+                            </div>
+                        </div>
 
-                            <!-- Saldo Bersih -->
-                            <div
-                                class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                                <div class="flex items-center justify-between mb-1">
-                                    <h3 class="text-sm font-medium text-gray-600">Balance</h3>
-                                    <div class="p-1 md:p-2 bg-blue-50 rounded-lg">
-                                        <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                            </path>
-                                        </svg>
-                                    </div>
+                        <!-- Saldo Bersih -->
+                        <div
+                            class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="text-sm font-medium text-gray-600">Balance</h3>
+                                <div class="p-1 md:p-2 bg-blue-50 rounded-lg">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                                        </path>
+                                    </svg>
                                 </div>
-                                <div class="text-lg font-bold {% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
-                                    id="netBalance">
-                                    Rp {{ "{:,}".format((chart_income | sum) - (chart_expenses |
-                                    sum)).replace(",", ".") }}
-                                </div>
-                                <div class="text-sm text-gray-500 mt-2">
-                                    <span
-                                        class="{% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
-                                        {{ "{:+.1f}%".format(((((chart_income | sum) - (chart_expenses | sum)) /
-                                        (((chart_income
-                                        | sum) - (chart_expenses | sum)) * 0.77) - 1) * 100) if ((chart_income |
-                                        sum) -
-                                        (chart_expenses | sum)) != 0 else 0) }}
-                                    </span> from last month
-                                </div>
+                            </div>
+                            <div class="text-lg font-bold {% if (chart_income | sum) - (chart_expenses | sum) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
+                                id="netBalance">
+                                Rp {{ "{:,}".format((chart_income | sum) - (chart_expenses |
+                                sum)).replace(",", ".") }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">
+                                <span class="{% if net_growth >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
+                                    {{ "{:+.1f}%".format(net_growth) if net_growth is not none else "N/A" }}
+                                </span> from last month
                             </div>
                         </div>
                     </div>
-                </div>
 
-            </div>
-
-            <div class="space-y-6 mt-6">
-                <div class="text-left space-y-1">
-                    <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
-                    <p class="text-gray-500 text-sm">Monthly summary of financial records</p>
-                </div>
-
-                <div class="overflow-x-auto w-full">
                     <table class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr class="bg-gray-50">
@@ -223,11 +184,41 @@
                         </tfoot>
                     </table>
                 </div>
+
+                <div class="text-left space-y-1">
+                    <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
+                    <p class="text-gray-500 text-sm">Displays charts of total income, expenses, and financial balance
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <!-- Chart Container -->
+                    <h2 class="text-center mt-6">Cash Flow</h2>
+                    <div class="w-2/3 justify-center mb-6">
+                        <div class="relative h-52">
+                            <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
+                                data-income='{{ chart_income | tojson | safe }}'
+                                data-expenses='{{ chart_expenses | tojson | safe }}'
+                                data-balance='{{ chart_balance | tojson | safe }}'>
+                            </canvas>
+                        </div>
+                    </div>
+                    <h2 class="text-center">Growth (%)</h2>
+                    <div class="w-2/3 justify-center">
+                        <div class="relative h-52">
+                            <canvas id="growthChart" data-labels='{{ chart_labels | tojson }}'
+                                data-growth-income='{{ income_growth_series | tojson }}'
+                                data-growth-expenses='{{ expenses_growth_series | tojson }}'
+                                data-growth-balance='{{ net_growth_series | tojson }}'>
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
 
-    <footer class="backdrop-blur-sm py-2 sm:py-3 mt-auto shadow bg-white text-center text-xs sm:text-sm text-gray-800">
+    <footer class="backdrop-blur-sm py-2 sm:py-3 mt-10 shadow bg-white text-center text-xs sm:text-sm text-gray-800">
         <div class="container mx-auto">
             <p>&copy; <span id="current-year"></span> catat-keuangan. All rights reserved.</p>
         </div>
@@ -240,119 +231,219 @@
 
     <!--Line chart-->
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const ctx = document.getElementById("lineChart");
-        const labels = JSON.parse(ctx.dataset.labels);
-        const income = JSON.parse(ctx.dataset.income);
-        const expenses = JSON.parse(ctx.dataset.expenses);
-        const balance = JSON.parse(ctx.dataset.balance);
+        document.addEventListener("DOMContentLoaded", () => {
+            const ctx = document.getElementById("lineChart");
+            const labels = JSON.parse(ctx.dataset.labels);
+            const income = JSON.parse(ctx.dataset.income);
+            const expenses = JSON.parse(ctx.dataset.expenses);
+            const balance = JSON.parse(ctx.dataset.balance);
 
-        const shortLabels = labels.map(month => {
-            const map = {
-                "January": "Jan", "February": "Feb", "March": "Mar",
-                "April": "Apr", "May": "Mei", "June": "Jun",
-                "July": "Jul", "August": "Agt", "September": "Sep",
-                "October": "Okt", "November": "Nov", "December": "Des"
+            const shortLabels = labels.map(month => {
+                const map = {
+                    "January": "Jan", "February": "Feb", "March": "Mar",
+                    "April": "Apr", "May": "Mei", "June": "Jun",
+                    "July": "Jul", "August": "Agt", "September": "Sep",
+                    "October": "Okt", "November": "Nov", "December": "Des"
+                };
+                return map[month] || month;
+            });
+
+            const formatShortCurrency = value => {
+                if (value >= 1_000_000_000) {
+                    return (value / 1_000_000_000).toFixed(1).replace('.0', '') + 'B';
+                } else if (value >= 1_000_000) {
+                    return (value / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+                } else if (value >= 1_000) {
+                    return (value / 1_000).toFixed(0) + 'K';
+                } else {
+                    return value;
+                }
             };
-            return map[month] || month;
-        });
 
-        const formatShortCurrency = value => {
-            if (value >= 1_000_000_000) {
-                return (value / 1_000_000_000).toFixed(1).replace('.0', '') + 'B';
-            } else if (value >= 1_000_000) {
-                return (value / 1_000_000).toFixed(1).replace('.0', '') + 'M';
-            } else if (value >= 1_000) {
-                return (value / 1_000).toFixed(0) + 'K';
-            } else {
-                return value;
-            }
-        };
-
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: shortLabels,
-                datasets: [
-                    {
-                        label: 'Pendapatan',
-                        data: income,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16,185,129,0.1)',
-                        tension: 0,
-                        pointRadius: 0,
-                        fill: 'origin',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Pengeluaran',
-                        data: expenses,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239,68,68,0.1)',
-                        tension: 0,
-                        pointRadius: 0,
-                        fill: 'origin',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Saldo',
-                        data: balance,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59,130,246,0.1)',
-                        tension: 0,
-                        pointRadius: 0,
-                        fill: false,
-                        borderDash: [5, 5],
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: shortLabels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: income,
+                            borderColor: '#10b981',
+                            backgroundColor: '#10b98115',
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: 'origin',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expenses',
+                            data: expenses,
+                            borderColor: '#f59e0b',
+                            backgroundColor: '#f59e0b15',
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: 'origin',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Balance',
+                            data: balance,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'transparent',
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: false,
+                            borderDash: [6, 4],
+                            borderWidth: 2
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                const value = context.parsed.y;
-                                return `${context.dataset.label}: Rp ${formatShortCurrency(value)}`;
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#6b7280' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.dataset.label}: ${Math.round(context.parsed.y)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#6b7280',
+                                callback: function (value) {
+                                    return 'Rp ' + formatShortCurrency(value);
+                                }
+                            },
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            ticks: { color: '#6b7280' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!--GROWTH CHART-->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const gctx = document.getElementById("growthChart");
+
+            if (gctx) {
+                const labels = JSON.parse(gctx.dataset.labels || "[]");
+                const incomeGrowth = JSON.parse(gctx.dataset.growthIncome || "[]");
+                const expensesGrowth = JSON.parse(gctx.dataset.growthExpenses || "[]");
+                const balanceGrowth = JSON.parse(gctx.dataset.growthBalance || "[]");
+
+                const shortLabels = labels.map(month => {
+                    const map = {
+                        "January": "Jan", "February": "Feb", "March": "Mar",
+                        "April": "Apr", "May": "Mei", "June": "Jun",
+                        "July": "Jul", "August": "Agt", "September": "Sep",
+                        "October": "Okt", "November": "Nov", "December": "Des"
+                    };
+                    return map[month] || month;
+                });
+
+                new Chart(gctx, {
+                    type: 'line',
+                    data: {
+                        labels: shortLabels,
+                        datasets: [
+                            {
+                                label: 'Income',
+                                data: incomeGrowth,
+                                borderColor: '#10b981',
+                                backgroundColor: '#10b98115',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Expenses',
+                                data: expensesGrowth,
+                                borderColor: '#f59e0b',
+                                backgroundColor: '#f59e0b15',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Balance',
+                                data: balanceGrowth,
+                                borderColor: '#6366f1',
+                                backgroundColor: 'transparent',
+                                tension: 0.3,
+                                fill: false,
+                                pointRadius: 0,
+                                borderDash: [6, 4],
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: '#6b7280' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return `${context.dataset.label}: ${Math.round(context.parsed.y)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: '#6b7280',
+                                    callback: function (value) {
+                                        return Math.round(value);
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Growth (%)',
+                                    color: '#6b7280'
+                                },
+                                grid: {
+                                    color: '#f3f4f6'
+                                }
+                            },
+                            x: {
+                                ticks: { color: '#6b7280' },
+                                grid: { display: false }
                             }
                         }
                     }
-                },
-                scales: {
-                    y: {
-                        ticks: {
-                            callback: function (value) {
-                                return 'Rp ' + formatShortCurrency(value);
-                            }
-                        },
-                        grid: { color: '#e5e7eb' }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
+                });
             }
         });
-
-        // Custom legend toggle
-        document.querySelectorAll(".legend-item").forEach((el) => {
-            el.addEventListener("click", () => {
-                const index = parseInt(el.dataset.dataset);
-                const meta = chart.getDatasetMeta(index);
-                meta.hidden = meta.hidden === null ? true : !meta.hidden;
-                chart.update();
-                el.style.opacity = meta.hidden ? "0.4" : "1";
-            });
-        });
-    });
-</script>
+    </script>
 
 </body>
 
