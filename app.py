@@ -11,11 +11,16 @@ from collections import defaultdict
 from flask_wtf.csrf import CSRFProtect
 import pytz
 import requests
+import ssl
 
 app = Flask(__name__)
 secret_key = os.urandom(24)
 app.secret_key = secret_key
 csrf = CSRFProtect(app)
+
+# testing (LOCAL ONLY). DO NOT USE IN PRODUCTION!!
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 
 if os.getenv("VERCEL") is None:

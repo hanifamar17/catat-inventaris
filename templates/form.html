@@ -51,7 +51,7 @@
                     <nav class="flex pb-4" aria-label="Breadcrumb">
                         <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                             <li class="inline-flex items-center">
-                                <a href="{{ url_for('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600
+                                <a href="{{ url_for('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
                                     {% if request.path == '/dashboard' %}
                     text-gray-400
                     {% else %}
@@ -67,7 +67,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m1 9 4-4-4-4" />
                                     </svg>
-                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600
+                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
             {% if request.path == '/income' %}
                     text-gray-400
                     {% else %}
@@ -82,7 +82,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m1 9 4-4-4-4" />
                                     </svg>
-                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600
+                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
             {% if request.path == '/expenses' %}
                     text-gray-400
                     {% else %}

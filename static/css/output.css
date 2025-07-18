@@ -352,6 +352,9 @@
   .hidden {
     display: none;
   }
+  .inline-block {
+    display: inline-block;
+  }
   .inline-flex {
     display: inline-flex;
   }
@@ -999,6 +1002,11 @@
     &:focus {
       --tw-outline-style: none;
       outline-style: none;
+    }
+  }
+  .active\:text-blue-600 {
+    &:active {
+      color: var(--color-blue-600);
     }
   }
   .active\:text-blue-900 {
