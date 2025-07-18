@@ -22,7 +22,6 @@ csrf = CSRFProtect(app)
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-
 if os.getenv("VERCEL") is None:
     from dotenv import load_dotenv
     load_dotenv()  # Load environment variables from .env file
