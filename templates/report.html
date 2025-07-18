@@ -54,8 +54,10 @@
 
                 <div class="space-y-6 mb-6">
                     <div class="text-left space-y-1">
-                        <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
-                        <p class="text-gray-500 text-sm">Monthly summary of financial records</p>
+                        <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
+                        <p class="text-gray-500 text-sm">Visual representation of income, expenses, and net balance
+                            trends with monthly growth insights
+                        </p>
                     </div>
 
                     <!-- Summary Cards -->
@@ -135,6 +137,36 @@
                         </div>
                     </div>
 
+                    <!-- Chart Container -->
+                    <div class="mb-12">
+                        <h2 class="text-center mt-6">Cash Flow</h2>
+                        <div class="w-2/3 justify-center mb-6">
+                            <div class="relative h-52">
+                                <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
+                                    data-income='{{ chart_income | tojson | safe }}'
+                                    data-expenses='{{ chart_expenses | tojson | safe }}'
+                                    data-balance='{{ chart_balance | tojson | safe }}'>
+                                </canvas>
+                            </div>
+                        </div>
+                        <h2 class="text-center">Growth (%)</h2>
+                        <div class="w-2/3 justify-center">
+                            <div class="relative h-52">
+                                <canvas id="growthChart" data-labels='{{ chart_labels | tojson }}'
+                                    data-growth-income='{{ income_growth_series | tojson }}'
+                                    data-growth-expenses='{{ expenses_growth_series | tojson }}'
+                                    data-growth-balance='{{ net_growth_series | tojson }}'>
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-left space-y-1">
+                        <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
+                        <p class="text-gray-500 text-sm">Detailed summary of income & expenses</p>
+                    </div>
+
+                    <!--Detail summary-->
                     <table class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr class="bg-gray-50">
@@ -184,42 +216,16 @@
                         </tfoot>
                     </table>
                 </div>
-
-                <div class="text-left space-y-1">
-                    <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
-                    <p class="text-gray-500 text-sm">Displays charts of total income, expenses, and financial balance
-                    </p>
-                </div>
-
-                <div class="mb-6">
-                    <!-- Chart Container -->
-                    <h2 class="text-center mt-6">Cash Flow</h2>
-                    <div class="w-2/3 justify-center mb-6">
-                        <div class="relative h-52">
-                            <canvas id="lineChart" data-labels='{{ chart_labels | tojson | safe }}'
-                                data-income='{{ chart_income | tojson | safe }}'
-                                data-expenses='{{ chart_expenses | tojson | safe }}'
-                                data-balance='{{ chart_balance | tojson | safe }}'>
-                            </canvas>
-                        </div>
-                    </div>
-                    <h2 class="text-center">Growth (%)</h2>
-                    <div class="w-2/3 justify-center">
-                        <div class="relative h-52">
-                            <canvas id="growthChart" data-labels='{{ chart_labels | tojson }}'
-                                data-growth-income='{{ income_growth_series | tojson }}'
-                                data-growth-expenses='{{ expenses_growth_series | tojson }}'
-                                data-growth-balance='{{ net_growth_series | tojson }}'>
-                            </canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
 
-    <footer class="backdrop-blur-sm py-2 sm:py-3 mt-10 shadow bg-white text-center text-xs sm:text-sm text-gray-800">
+    <footer class="mt-20 text-center text-xs text-gray-700">
         <div class="container mx-auto">
+            <div class="italic mb-2">
+                <span class="info-label">Generated on </span>
+                <span>{{ now|format_date_2 }} WIB</span>
+            </div>
             <p>&copy; <span id="current-year"></span> catat-keuangan. All rights reserved.</p>
         </div>
     </footer>

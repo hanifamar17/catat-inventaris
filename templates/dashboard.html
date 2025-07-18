@@ -277,8 +277,8 @@
                                         class="px-3 py-2 whitespace-nowrap currency text-right {{ 'text-green-600' if data.balance >= 0 else 'text-red-600' }}">
                                         {{ data.balance | format_rupiah }}</td>
                                     <td class="px-3 py-2">
-                                        <a href="{{ url_for('monthly_report_pdf', month=month) }}" target="_blank"
-                                            class="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded-md transition-colors duration-200 border border-gray-200 cursor-pointer">
+                                        <a href="{{ url_for('monthly_report', month=month) }}" target="_blank"
+                                            class="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded-md transition-colors duration-200 border border-gray-200 cursor-not-allowed opacity-50 pointer-events-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -301,8 +301,8 @@
                         </table>
                     </div>
                     <div class="flex flex-row justify-end">
-                        <a href="{{ url_for('download_pdf') }}" target="_blank"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
+                        <a href="{{ url_for('annual_report') }}" target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow cursor-not-allowed opacity-50 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -310,16 +310,17 @@
                             </svg>
                             Report (PDF)
                         </a>
+
                         <!--
-                    <a href="{{ url_for('report') }}" target="_blank"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V4" />
-                        </svg>
-                        View PDF
-                    </a>-->
+                        <a href="{{ url_for('annual_report_test') }}" target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition duration-200 shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V4" />
+                            </svg>
+                            View PDF
+                        </a>-->
                     </div>
                 </div>
             </div>

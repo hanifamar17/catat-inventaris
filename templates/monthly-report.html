@@ -53,9 +53,10 @@
 
                 <div class="space-y-6 mb-6">
                     <div class="text-left space-y-1">
-                        <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
-                        <p class="text-gray-500 text-sm">Detailed summary of income, expenses and net balance trends
-                            with monthly growth insights</p>
+                        <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
+                        <p class="text-gray-500 text-sm">Visual representation of income, expenses, and net balance
+                            trends with monthly growth insights
+                        </p>
                     </div>
 
                     <!-- Summary Cards -->
@@ -63,7 +64,7 @@
                         <!-- Total Pendapatan -->
                         <div
                             class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-medium text-gray-600">Income</h3>
                                 <div class="p-1 md:p-2 bg-emerald-50 rounded-lg">
                                     <svg class="w-4 h-4 md:w-5 md:h-5 text-emerald-600" fill="none"
@@ -73,10 +74,10 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="text-lg font-bold text-emerald-600" id="totalIncome">
+                            <div class="font-bold text-emerald-600" id="totalIncome">
                                 {{ total_income | format_rupiah}}
                             </div>
-                            <div class="text-sm text-gray-500 mt-2">
+                            <div class="text-xs text-gray-500 mt-1">
                                 <span class="text-emerald-600">
                                     {{ "{:+.1f}%".format(income_growth) if income_growth is not none else "N/A" }}
                                 </span>
@@ -87,7 +88,7 @@
                         <!-- Total Pengeluaran -->
                         <div
                             class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-medium text-gray-600">Expenses</h3>
                                 <div class="p-1 md:p-2 bg-red-50 rounded-lg">
                                     <svg class="w-4 h-4 md:w-5 md:h-5 text-red-600" fill="none" stroke="currentColor"
@@ -97,10 +98,10 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="text-lg font-bold text-red-600" id="totalExpenses">
+                            <div class="font-bold text-red-600" id="totalExpenses">
                                 {{ total_expenses | format_rupiah }}
                             </div>
-                            <div class="text-sm text-gray-500 mt-2">
+                            <div class="text-xs text-gray-500 mt-1">
                                 <span class="text-red-600">
                                     {{ "{:+.1f}%".format(expenses_growth) if expenses_growth is not none else "N/A"
                                     }}
@@ -111,7 +112,7 @@
                         <!-- Saldo Bersih -->
                         <div
                             class="bg-white rounded-xl border border-gray-200 p-3 hover:shadow-md transition-shadow duration-200">
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-medium text-gray-600">Balance</h3>
                                 <div class="p-1 md:p-2 bg-blue-50 rounded-lg">
                                     <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor"
@@ -122,11 +123,11 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="text-lg font-bold {% if (total_income) - (total_expenses) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
+                            <div class="font-bold {% if (total_income) - (total_expenses) >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}"
                                 id="netBalance">
                                 {{ ((total_income) - (total_expenses)) | format_rupiah }}
                             </div>
-                            <div class="text-sm text-gray-500 mt-2">
+                            <div class="text-xs text-gray-500 mt-1">
                                 {% if net_growth is not none %}
                                 <span class="{% if net_growth >= 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
                                     {{ net_growth }}%
@@ -138,6 +139,86 @@
                         </div>
                     </div>
 
+                    <!--Chart container-->
+                    <div class="mb-6 flex flex-row space-x-4 justify-between self-center items-center">
+                        <!-- Income Chart -->
+                        <div>
+                            <h2 class="text-center mt-6">Income Summary</h2>
+                            <div class="w-full justify-center mb-6 h-72">
+                                <div class="relative">
+                                    <canvas id="incomeChart" data-labels='{{ income_labels | tojson | safe }}'
+                                        data-data='{{ income_data | tojson | safe }}' class="w-full h-64"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses Chart -->
+                        <div>
+                            <h2 class="text-center">Expenses Summary</h2>
+                            <div class="w-full justify-center h-72">
+                                <div class="relative">
+                                    <canvas id="expenseChart" data-labels='{{ expense_labels | tojson | safe }}'
+                                        data-data='{{ expense_data | tojson | safe }}' class="w-full h-64"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-left space-y-1">
+                        <h2 class="text-lg font-medium text-gray-800 capitalize">Financial Overview</h2>
+                        <p class="text-gray-500 text-sm">Detailed summary of income & expenses</p>
+                    </div>
+
+                    <!--Detail summary income-->
+                    <h2 class="font-medium text-gray-800 capitalize mb-2">Income</h2>
+                    <table id="records-table"
+                        class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200 mb-6">
+                        <thead class="bg-gray-100">
+                            <tr class="bg-gray-50">
+                                <th
+                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    No
+                                </th>
+                                <th
+                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Item</th>
+                                <th
+                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Category</th>
+                                <th
+                                    class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Amount
+                                </th>
+                                <th
+                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for row in summary_data_income %}
+                            <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 text-sm">
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-900">{{ loop.index }}</td>
+                                <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[2] }}</td>
+                                <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[3] }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ row[4]|format_rupiah
+                                    }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap">{{ row[1]|format_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="px-3 py-2 text-right font-medium text-sm text-gray-700">Total
+                                </th>
+                                <th class="px-2 py-2 text-sm text-right text-gray-900 currency">{{ total_income |
+                                    format_rupiah }}</th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!--Detail summary expenses-->
+                    <h2 class="font-medium text-gray-800 capitalize mb-2">Expenses</h2>
                     <table id="records-table"
                         class="table-auto w-full text-sm whitespace-nowrap divide-y divide-gray-200">
                         <thead class="bg-gray-100">
@@ -162,7 +243,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            {% for row in summary_data %}
+                            {% for row in summary_data_expenses %}
                             <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 text-sm">
                                 <td class="px-3 py-2 whitespace-nowrap text-gray-900">{{ loop.index }}</td>
                                 <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[2] }}</td>
@@ -177,42 +258,24 @@
                             <tr>
                                 <th colspan="3" class="px-3 py-2 text-right font-medium text-sm text-gray-700">Total
                                 </th>
-                                <th class="px-2 py-2 text-sm text-right text-gray-900 currency">{{ total_amount | format_rupiah }}</th>
+                                <th class="px-2 py-2 text-sm text-right text-gray-900 currency">{{ total_expenses |
+                                    format_rupiah }}</th>
                                 <th colspan="2"></th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
-
-                <div class="text-left space-y-1">
-                    <h2 class="text-lg font-medium text-gray-800 capitalize">Trend Analysis</h2>
-                    <p class="text-gray-500 text-sm">Visual representation of income & expenses by category
-                    </p>
-                </div>
-
-                <div class="mb-6">
-                    <!-- Chart Container -->
-                    <h2 class="text-center mt-6">Income Summary</h2>
-                    <div class="w-full justify-center mb-6">
-                        <div class="relative h-52">
-                            <canvas id="incomeChart" data-labels='{{ income_labels | tojson | safe }}'
-                                data-data='{{ income_data | tojson | safe }}' class="w-full h-64"></canvas>
-                        </div>
-                    </div>
-                    <h2 class="text-center">Expenses Summary</h2>
-                    <div class="w-full justify-center">
-                        <div class="relative h-52">
-                            <canvas id="expenseChart" data-labels='{{ expense_labels | tojson | safe }}'
-                                data-data='{{ expense_data | tojson | safe }}' class="w-full h-64"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
 
-    <footer class="backdrop-blur-sm py-2 sm:py-3 mt-10 shadow bg-white text-center text-xs sm:text-sm text-gray-800">
+
+    <footer class="mt-20 text-center text-xs text-gray-700">
         <div class="container mx-auto">
+            <div class="italic mb-2">
+                <span class="info-label">Generated on </span>
+                <span>{{ now|format_date_2 }} WIB</span>
+            </div>
             <p>&copy; <span id="current-year"></span> catat-keuangan. All rights reserved.</p>
         </div>
     </footer>
