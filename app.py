@@ -273,6 +273,9 @@ def dashboard():
 # Income page
 @app.route("/income", methods=["GET", "POST"])
 def income():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     if request.method == "POST":
         try:
             income_id = secrets.token_hex(6)
@@ -335,6 +338,9 @@ def income():
 # Expenses page
 @app.route("/expenses", methods=["GET", "POST"])
 def expenses():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     if request.method == "POST":
         try:
             expenses_id = secrets.token_hex(6)
@@ -493,6 +499,9 @@ def delete_record(sheet, record_id):
 # Unduh annual report pdf
 @app.route('/annual_report')
 def annual_report():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     selected_year = request.args.get("year", datetime.now().year, type=int)
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
@@ -591,6 +600,9 @@ def annual_report():
 # Unduh report pdf (testing)
 @app.route('/annual-report-test')
 def annual_report_test():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     selected_year = request.args.get("year", datetime.now().year, type=int)
     
     # Ambil data dari Google Sheets
@@ -672,6 +684,9 @@ def annual_report_test():
 
 @app.route("/monthly_report/<month>")
 def monthly_report(month):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expense_data = get_data("Expenses")
@@ -787,6 +802,9 @@ def monthly_report(month):
 # Unduh report perbulan pdf (testing)
 @app.route("/monthly-report-tes/<month>")
 def monthly_report_test(month):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expense_data = get_data("Expenses")
