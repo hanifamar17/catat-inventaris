@@ -51,7 +51,8 @@
                     <nav class="flex pb-4" aria-label="Breadcrumb">
                         <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                             <li class="inline-flex items-center">
-                                <a href="{{ url_for('dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
+                                <a href="{{ url_for('dashboard') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
+          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
                                     {% if request.path == '/dashboard' %}
                     text-gray-400
                     {% else %}
@@ -67,7 +68,8 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m1 9 4-4-4-4" />
                                     </svg>
-                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
+                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
+          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
             {% if request.path == '/income' %}
                     text-gray-400
                     {% else %}
@@ -82,7 +84,8 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m1 9 4-4-4-4" />
                                     </svg>
-                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600 transition-colors duration-150
+                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
+          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
             {% if request.path == '/expenses' %}
                     text-gray-400
                     {% else %}
@@ -180,39 +183,49 @@
                         </div>
                         <div class="mb-4 md:flex md:justify-end space-x-2">
                             <!-- Filter Section -->
-                            <form method="get"
+                            <form id="filterForm" method="get"
                                 class="w-full flex flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
-                                <!-- Month Selector -->
+
+                                <!-- Bulan -->
                                 <div class="w-full sm:w-auto">
-                                    <label for="month" class="sr-only">Month</label>
                                     <select id="month" name="month"
                                         class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         {% for m in range(1, 13) %}
-                                        <option value="{{ m }}" {% if m|string==selected_month %}selected{% endif %}>
-                                            {{ m | monthname }}
-                                        </option>
+                                        <option value="{{ m }}" {% if m|string==selected_month %}selected{% endif %}>{{
+                                            m | monthname }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
 
-                                <!-- Year Selector -->
+                                <!-- Tahun -->
                                 <div class="w-full sm:w-auto">
-                                    <label for="year" class="sr-only">Year</label>
                                     <select id="year" name="year"
                                         class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         {% for y in range(2025, now().year + 1) %}
                                         <option value="{{ y }}" {% if y|string==selected_year %}selected{% endif %}>{{ y
-                                            }}
-                                        </option>
+                                            }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
 
-                                <!-- Submit Button -->
+                                <!-- Tombol Filter -->
                                 <div class="w-1/2">
-                                    <button type="submit"
-                                        class="w-full inline-flex items-center justify-center px-3 md:px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                                        <i class="fa-solid fa-filter"></i>
+                                    <button id="filterBtn" type="submit"
+                                        class="w-full inline-flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+
+                                        <!-- Ikon -->
+                                        <span id="btnText">
+                                            <i class="fa-solid fa-filter"></i>
+                                        </span>
+
+                                        <!-- Spinner -->
+                                        <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4" />
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                        </svg>
                                     </button>
                                 </div>
                             </form>
@@ -850,4 +863,43 @@
     });
 </script>
 
+<!-- Spinner filter -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterForm = document.getElementById("filterForm");
+        const filterBtn = document.getElementById("filterBtn");
+        const btnText = document.getElementById("btnText");
+        const spinner = document.getElementById("spinner");
+
+        filterForm.addEventListener("submit", function () {
+            filterBtn.disabled = true;
+            btnText.classList.add("hidden");
+            spinner.classList.remove("hidden");
+        });
+    });
+</script>
+
+<!--install webapp-->
+<script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Tampilkan tombol custom
+        const btn = document.getElementById('installBtn');
+        btn.style.display = 'inline-block';
+
+        btn.addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    //console.log('User accepted A2HS prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+    });
+</script>
 {% endblock %}

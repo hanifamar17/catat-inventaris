@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Catat Keuangan{% endblock %}</title>
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0d6efd">
+
+    <!--
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+-->
+    <!-- Tailwind CSS (dihasilkan oleh Tailwind CLI) -->
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+
+    <!-- Font Awesome CDN (versi 6+) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
+
+    <!--Sweetalert-->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(() => console.log('Service Worker Registered'));
+        }
+    </script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body class="bg-white flex flex-col p-0 md:p-0 min-h-screen w-full text-gray-800">
+    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50" x-data="{ userMenuOpen: false }">
+        <div class="max-w-screen-xl mx-auto px-4 py-1.5">
+            <div class="flex items-center justify-between">
+                <!-- Left Side - Logo and Navigation Menu -->
+                <div class="flex items-center space-x-8">
+                    <!-- Logo/Brand -->
+                    <div class="flex-shrink-0">
+                        <span
+                            class="text-sm font-normal text-gray-900 uppercase tracking-wide hover:text-blue-600 focus:outline-none transition-colors duration-200 cursor-pointer">
+                            Catat<span class="font-black">Keuangan</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Right Side -->
+                <div class="flex items-center">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <div class="flex items-center space-x-2 ml-3">
+                            <span>Halo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container: center and responsive -->
+    <div class="min-h-screen flex items-center justify-center px-8 md:px-4">
+        <div class="w-full max-w-md">
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="p-3 mb-6 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+                {% for msg in messages %}
+                <span>{{ msg }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Info Teks -->
+            <h2 class="text-lg font-semibold text-left text-gray-700 mb-8">
+                Login to access the system
+            </h2>
+
+            <!-- Form -->
+            <form method="post" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Username -->
+                <div class="relative z-0 w-full group">
+                    <input type="text" name="username" id="floating_username"
+                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                        placeholder=" " required />
+                    <label for="floating_username"
+                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:scale-75 peer-focus:-translate-y-6">
+                        Username
+                    </label>
+                </div>
+
+                <!-- Password -->
+                <div class="relative z-0 w-full group">
+                    <input type="password" name="password" id="floating_password"
+                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                        placeholder=" " required />
+                    <label for="floating_password"
+                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:scale-75 peer-focus:-translate-y-6">
+                        Password
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-left">
+                    <button id="loginBtn" type="submit"
+                        class="flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer w-26">
+                        <span id="btnText">
+                            <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+                        </span>
+                        <svg id="spinner" class="hidden w-4 h-4 animate-spin text-white" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+    <footer class="backdrop-blur-sm py-2 sm:py-3 mt-auto shadow bg-white text-center text-xs sm:text-sm text-gray-800">
+        <div class="container mx-auto">
+            <p>&copy; <span id="current-year"></span> catat-keuangan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!--Current Year-->
+    <script>
+        document.getElementById("current-year").textContent = new Date().getFullYear();
+    </script>
+
+    <!--Spinner loading login-->
+    <script>
+        const form = document.querySelector("form");
+        const loginBtn = document.getElementById("loginBtn");
+        const btnText = document.getElementById("btnText");
+        const spinner = document.getElementById("spinner");
+
+        form.addEventListener("submit", function () {
+            loginBtn.disabled = true;
+            btnText.classList.add("hidden");
+            spinner.classList.remove("hidden");
+        });
+    </script>
+
+</body>
+
+</html>

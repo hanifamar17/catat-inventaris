@@ -215,7 +215,7 @@
                         </div>
                         <div class="mb-4 md:flex md:justify-end space-x-2">
                             <!-- Filter Section -->
-                            <form method="get"
+                            <form id="filterForm" method="get"
                                 class="w-full flex flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
                                 <!-- Year Selector -->
                                 <div class="w-full sm:w-auto">
@@ -232,9 +232,22 @@
 
                                 <!-- Submit Button -->
                                 <div class="w-1/2">
-                                    <button type="submit"
-                                        class="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                                        <i class="fa-solid fa-filter"></i>
+                                    <button id="filterBtn" type="submit"
+                                        class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                        
+                                        <!-- Ikon -->
+                                        <span id="btnText">
+                                            <i class="fa-solid fa-filter"></i>
+                                        </span>
+
+                                        <!-- Spinner -->
+                                        <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4" />
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                        </svg>
                                     </button>
                                 </div>
                             </form>
@@ -314,7 +327,7 @@
                             </svg>
                             Report (PDF)
                         </a>
-                        <button id="installBtn" style="display:none;" class="btn">Install App</button>
+                        <button id="installBtn" style="display:none;" class="btn hidden">Install App</button>
 
                         <!--
                         <a href="{{ url_for('annual_report_test') }}" target="_blank"
@@ -636,10 +649,26 @@
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted A2HS prompt');
+                    //console.log('User accepted A2HS prompt');
                 }
                 deferredPrompt = null;
             });
+        });
+    });
+</script>
+
+<!-- Spinner filter -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterForm = document.getElementById("filterForm");
+        const filterBtn = document.getElementById("filterBtn");
+        const btnText = document.getElementById("btnText");
+        const spinner = document.getElementById("spinner");
+
+        filterForm.addEventListener("submit", function () {
+            filterBtn.disabled = true;
+            btnText.classList.add("hidden");
+            spinner.classList.remove("hidden");
         });
     });
 </script>

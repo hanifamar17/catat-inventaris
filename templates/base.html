@@ -22,8 +22,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- DataTables Core -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <!-- DataTables Tailwind Plugin -->
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.tailwindcss.min.js"></script>
+
 
     <!-- Chart js-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -69,11 +68,31 @@
                 </div>
 
                 <!-- Right Side -->
-                <div class="flex items-center">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <div class="flex items-center space-x-2 ml-3">
-                            <span>Halo</span>
-                        </div>
+                <div class="relative">
+                    <!-- Trigger Dropdown -->
+                    <div id="dropdownTrigger"
+                        class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                        <span>Halo, {{ session['user'] }}</span>
+                        <svg id="chevronIcon" class="w-4 h-4 transition-transform duration-200" fill="none"
+                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div id="dropdownMenu"
+                        class="absolute right-0 top-full mt-2 w-44 bg-white rounded shadow-lg opacity-0 invisible transition-all duration-200 transform scale-95 z-50">
+                        <button id="installBtn"
+                            class="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 text-left cursor-pointer">
+                            <i class="fa-solid fa-download w-4 text-center"></i>
+                            Install App
+                        </button>
+                        <hr class="border-gray-100">
+                        <a href="{{ url_for('logout') }}"
+                            class="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                            <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                            Logout
+                        </a>
                     </div>
                 </div>
             </div>
@@ -101,6 +120,30 @@
     <!--Current Year-->
     <script>
         document.getElementById("current-year").textContent = new Date().getFullYear();
+    </script>
+
+    <!--smooth dropdown-->
+    <script>
+        const trigger = document.getElementById('dropdownTrigger');
+        const menu = document.getElementById('dropdownMenu');
+
+        trigger.addEventListener('click', function () {
+            if (menu.classList.contains('invisible')) {
+                menu.classList.remove('invisible', 'opacity-0', 'scale-95');
+                menu.classList.add('opacity-100', 'scale-100');
+            } else {
+                menu.classList.add('invisible', 'opacity-0', 'scale-95');
+                menu.classList.remove('opacity-100', 'scale-100');
+            }
+        });
+
+        // Optional: close dropdown if clicked outside
+        document.addEventListener('click', function (e) {
+            if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('invisible', 'opacity-0', 'scale-95');
+                menu.classList.remove('opacity-100', 'scale-100');
+            }
+        });
     </script>
 </body>
 

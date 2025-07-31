@@ -1,17 +1,18 @@
 import secrets
 from uuid import uuid4
-from flask import Flask, Response, jsonify, render_template, request, redirect, send_file
+from flask import Flask, Response, jsonify, render_template, request, redirect, send_file, session, url_for, flash
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import calendar
 from collections import defaultdict
 from flask_wtf.csrf import CSRFProtect
 import pytz
 import requests
 import ssl
+from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
 secret_key = os.urandom(24)
@@ -19,12 +20,19 @@ app.secret_key = secret_key
 csrf = CSRFProtect(app)
 
 # testing (LOCAL ONLY). DO NOT USE IN PRODUCTION!!
-ssl._create_default_https_context = ssl._create_unverified_context
+#ssl._create_default_https_context = ssl._create_unverified_context
 
 
 if os.getenv("VERCEL") is None:
     from dotenv import load_dotenv
     load_dotenv()  # Load environment variables from .env file
+
+# username & password admin
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+ADMIN_PASSWORD_HASH = os.getenv('ADMIN_PASSWORD_HASH')
+
+# Set waktu session (misalnya 30 hari)
+app.permanent_session_lifetime = timedelta(days=30)
 
 # Spreadsheet ID dan range untuk menyimpan data
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
@@ -145,6 +153,27 @@ def pdf_with_pdfshift(html_content, filename="report.pdf"):
         print("PDFShift Error:", response.text)
         return False
 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username_input = request.form['username']
+        password_input = request.form['password']
+        
+        if username_input == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password_input):
+            session.permanent = True
+            session['user'] = username_input
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Login gagal. Username atau password salah.")
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
     
 @app.route("/")
 def index():
@@ -171,6 +200,9 @@ def get_growth_series(values):
 # Dashboard page
 @app.route("/dashboard")
 def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
     selected_year = request.args.get("year", datetime.now().year, type=int)
     
     # Ambil data dari Google Sheets
