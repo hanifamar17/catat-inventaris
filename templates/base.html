@@ -9,9 +9,9 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#0d6efd">
 
-    <!--
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
--->
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/icon2.png') }}">
+
     <!-- Tailwind CSS (dihasilkan oleh Tailwind CLI) -->
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 
@@ -54,7 +54,11 @@
                 <!-- Left Side - Logo and Navigation Menu -->
                 <div class="flex items-center space-x-8">
                     <!-- Logo/Brand -->
-                    <div class="flex-shrink-0">
+                    <div class="flex items-center flex-shrink-0">
+                        <a href="https://www.flaticon.com/free-icons/investment-growth" target="_blank" rel="noopener noreferrer" title="Investment growth icons created by karthiks_18 - Flaticon">
+                        <img src="{{ url_for('static', filename='icons/icon.png') }}" alt="Logo" style="width: 35px; height: 35px;"
+                            class="object-contain transition-transform duration-200 hover:scale-110">
+                        </a>
                         <span
                             class="text-sm font-normal text-gray-900 uppercase tracking-wide hover:text-blue-600 focus:outline-none transition-colors duration-200 cursor-pointer">
                             Catat<span class="font-black">Keuangan</span>
