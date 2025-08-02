@@ -1,6 +1,6 @@
 import secrets
 from uuid import uuid4
-from flask import Flask, Response, jsonify, render_template, request, redirect, send_file, session, url_for, flash
+from flask import Flask, Response, jsonify, render_template, request, redirect, send_file, session, url_for, flash, abort
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
@@ -13,10 +13,12 @@ import pytz
 import requests
 import ssl
 from werkzeug.security import check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_session import Session
+from flask import send_from_directory
 
 app = Flask(__name__)
-secret_key = os.urandom(24)
-app.secret_key = secret_key
+app.secret_key = os.getenv("SECRET_KEY", "fallback-if-missing")
 csrf = CSRFProtect(app)
 
 # testing (LOCAL ONLY). DO NOT USE IN PRODUCTION!!
@@ -27,13 +29,6 @@ if os.getenv("VERCEL") is None:
     from dotenv import load_dotenv
     load_dotenv()  # Load environment variables from .env file
 
-# username & password admin
-ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
-ADMIN_PASSWORD_HASH = os.getenv('ADMIN_PASSWORD_HASH')
-
-# Set waktu session (misalnya 30 hari)
-app.permanent_session_lifetime = timedelta(days=30)
-
 # Spreadsheet ID dan range untuk menyimpan data
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 PDFSHIFT_API_KEY = os.getenv("PDFSHIFT_API_KEY")
@@ -41,13 +36,14 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Load credentials
 if os.getenv("VERCEL"):
-    # Di Vercel: dari environment variable GOOGLE_CREDENTIALS
+    # Dari environment variable GOOGLE_CREDENTIALS
     service_account_info = json.loads(os.getenv("GOOGLE_CREDENTIALS", "{}"))
+    service_account_info['private_key'] = service_account_info['private_key'].replace('\\n', '\n')
     credentials = service_account.Credentials.from_service_account_info(
         service_account_info, scopes=SCOPES
     )
 else:
-    # Lokal: dari file credentials.json
+    # Dari file lokal
     credentials = service_account.Credentials.from_service_account_file(
         'credentials.json', scopes=SCOPES
     )
@@ -153,16 +149,49 @@ def pdf_with_pdfshift(html_content, filename="report.pdf"):
         print("PDFShift Error:", response.text)
         return False
 
+#session cookie
+app.config['WTF_CSRF_SECRET_KEY'] = os.getenv("WTF_CSRF_SECRET_KEY", "your-random-string")
+app.config['SESSION_COOKIE_SECURE'] = True  # Karena di Vercel pakai HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Login management
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+# username & password admin from googlesheet
+def get_accounts_from_sheet():
+    sheet = sheets_service.spreadsheets()
+    result = sheet.values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range="Account!A2:B"  # Asumsikan header di baris 1
+    ).execute()
+    
+    values = result.get('values', [])
+    # Buat dict: {username: password}
+    accounts = {row[0]: row[1] for row in values if len(row) >= 2}
+    return accounts
+
+class AdminUser(UserMixin):
+    def __init__(self, username):
+        self.id = username  # Bisa ditampilkan sebagai current_user.id
+
+@login_manager.user_loader
+def load_user(user_id):
+    return AdminUser(user_id)  # Tidak perlu validasi ulang, cukup restore sesi
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username_input = request.form['username']
         password_input = request.form['password']
-        
-        if username_input == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password_input):
-            session.permanent = True
-            session['user'] = username_input
+
+        accounts = get_accounts_from_sheet()
+
+        # Autentikasi dari sheet
+        if username_input in accounts and check_password_hash(accounts[username_input], password_input):
+            user = AdminUser(username_input)
+            login_user(user, remember=True)
             return redirect(url_for('dashboard'))
         else:
             flash("Login gagal. Username atau password salah.")
@@ -170,14 +199,16 @@ def login():
     return render_template('login.html')
 
 @app.route('/logout')
+@login_required
 def logout():
-    session.pop('user', None)
+    logout_user()
     return redirect(url_for('login'))
 
     
+# Home page    
 @app.route("/")
 def index():
-    return redirect('dashboard')
+    return render_template('login.html')
 
 # hitung growth
 def get_growth(data):
@@ -199,10 +230,9 @@ def get_growth_series(values):
     
 # Dashboard page
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
+    #print("Current user:", current_user.is_authenticated, current_user.get_id())
     selected_year = request.args.get("year", datetime.now().year, type=int)
     
     # Ambil data dari Google Sheets
@@ -272,10 +302,8 @@ def dashboard():
 
 # Income page
 @app.route("/income", methods=["GET", "POST"])
+@login_required
 def income():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     if request.method == "POST":
         try:
             income_id = secrets.token_hex(6)
@@ -337,10 +365,8 @@ def income():
 
 # Expenses page
 @app.route("/expenses", methods=["GET", "POST"])
+@login_required
 def expenses():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     if request.method == "POST":
         try:
             expenses_id = secrets.token_hex(6)
@@ -498,10 +524,8 @@ def delete_record(sheet, record_id):
 
 # Unduh annual report pdf
 @app.route('/annual_report')
+@login_required
 def annual_report():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     selected_year = request.args.get("year", datetime.now().year, type=int)
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
@@ -597,12 +621,10 @@ def annual_report():
     else:
         return f"PDFShift Error: {response.text}", 500
 
-# Unduh report pdf (testing)
+# Unduh report pdf (use for testing only)
 @app.route('/annual-report-test')
+@login_required
 def annual_report_test():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     selected_year = request.args.get("year", datetime.now().year, type=int)
     
     # Ambil data dari Google Sheets
@@ -683,10 +705,8 @@ def annual_report_test():
                            net_growth_series=net_growth_series)
 
 @app.route("/monthly_report/<month>")
+@login_required
 def monthly_report(month):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expense_data = get_data("Expenses")
@@ -799,12 +819,10 @@ def monthly_report(month):
     else:
         return f"PDFShift Error: {response.text}", 500
 
-# Unduh report perbulan pdf (testing)
+# Unduh report perbulan pdf (use for testing only)
 @app.route("/monthly-report-tes/<month>")
+@login_required
 def monthly_report_test(month):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     # Ambil data dari Google Sheets
     income_data = get_data("Income")
     expense_data = get_data("Expenses")
@@ -902,5 +920,6 @@ def monthly_report_test(month):
 
 
 
+
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

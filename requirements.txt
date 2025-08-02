@@ -8,3 +8,5 @@ google-api-python-client
 python-dotenv
 requests
 pytz
+flask_login
+Flask-Session
