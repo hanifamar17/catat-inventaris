@@ -16,6 +16,13 @@ from werkzeug.security import check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_session import Session
 from flask import send_from_directory
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from io import BytesIO
+import qrcode
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "fallback-if-missing")
@@ -258,13 +265,14 @@ def edit_record(sheet, kode_barang):
     nama_barang = request.form.get("nama_barang")
     merek = request.form.get("merek")
     jumlah = request.form.get("jumlah")
+    date_inventaris = request.form.get("date")
     kondisi = request.form.get("kondisi")
     keterangan = request.form.get("keterangan")
 
     # Ambil semua data
     data = sheets_service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{sheet.capitalize()}!A2:F"
+        range=f"{sheet.capitalize()}!A2:G"
     ).execute().get('values', [])
 
     # Cari baris berdasarkan Kode Barang
@@ -275,12 +283,13 @@ def edit_record(sheet, kode_barang):
                 nama_barang,
                 merek,
                 jumlah,
+                date_inventaris,
                 kondisi,
                 keterangan
             ]]
             sheets_service.spreadsheets().values().update(
                 spreadsheetId=SPREADSHEET_ID,
-                range=f"{sheet.capitalize()}!A{index}:F{index}",
+                range=f"{sheet.capitalize()}!A{index}:G{index}",
                 valueInputOption="USER_ENTERED",
                 body={"values": values}
             ).execute()
@@ -351,6 +360,101 @@ def delete_record(sheet, kode_barang):
         return jsonify({"status": "success", "message": "Barang berhasil dihapus"})
     except Exception as e:
         return jsonify({"status": "error", "message": f"Gagal menghapus barang: {e}"})
+
+## Cetak label barang
+def get_barang_by_kode(kode_barang):
+    # Ambil semua data dari sheet
+    result = sheets_service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range='Barang!A2:G'
+    ).execute()
+
+    values = result.get('values', [])
+
+    for row in values:
+        if row[0] == kode_barang:
+            return {
+                'kode_barang': row[0],
+                'nama_barang': row[1],
+                'merek': row[2],
+                'kondisi': row[5]
+            }
+
+    return None
+
+@app.route('/cetak-label/<kode_barang>')
+def cetak_label(kode_barang):
+    # Misal ambil data dari Google Sheets atau DB
+    barang = get_barang_by_kode(kode_barang)  # buat fungsi ini sesuai datamu
+
+    if not barang:
+        return "Barang tidak ditemukan", 404
+
+    nama_barang = barang['nama_barang']  # pastikan key sesuai
+    merek = barang['merek']
+    kondisi = barang['kondisi']
+
+    # Generate QR Code
+    qr = qrcode.make(kode_barang)
+    qr_io = BytesIO()
+    qr.save(qr_io, format='PNG')
+    qr_io.seek(0)
+
+    # Buat dokumen Word
+    doc = Document()
+
+    # Buat table 1 kolom, 3 baris (QR + Text)
+    table = doc.add_table(rows=3, cols=1)
+    table.alignment = WD_TABLE_ALIGNMENT.LEFT
+    table.autofit = True
+    table.style = 'Table Grid'
+
+    # Tambahkan border
+    #tbl = table._tbl
+    #tbl.set(qn('w:tblBorders'), 
+    #    '''
+    #    <w:tblBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+    #        <w:top w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+    #        <w:left w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+    #        <w:bottom w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+    #        <w:right w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+    #    </w:tblBorders>
+    #    '''
+    #)
+
+    # Baris 1: Judul label
+    cell0 = table.cell(0, 0)
+    p0 = cell0.paragraphs[0]
+    p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run0 = p0.add_run("Label Inventaris")
+    run0.bold = True
+    run0.font.size = Pt(12)
+
+    # Baris 2: QR code
+    cell1 = table.cell(1, 0)
+    p1 = cell1.paragraphs[0]
+    run1 = p1.add_run()
+    run1.add_picture(qr_io, width=Inches(1.5))
+    p1.alignment = 1  # Center
+
+    # Baris 3: Text
+    cell2 = table.cell(2, 0)
+    p2 = cell2.paragraphs[0]
+    p2.alignment = 1  # Center
+    run2 = p2.add_run(f"{kode_barang}\n{nama_barang}\n{merek}\n{kondisi}")
+    run2.font.size = Pt(10)
+
+    # Simpan ke memory
+    doc_io = BytesIO()
+    doc.save(doc_io)
+    doc_io.seek(0)
+
+    return send_file(
+        doc_io,
+        as_attachment=True,
+        download_name=f'label_{kode_barang}.docx',
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
 
 ## Unduh annual report pdf
 #@app.route('/annual_report')

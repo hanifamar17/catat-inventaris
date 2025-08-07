@@ -10,3 +10,6 @@ requests
 pytz
 flask_login
 Flask-Session
+python-docx
+qrcode
+pillow
