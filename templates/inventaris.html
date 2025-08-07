@@ -62,112 +62,80 @@
     <div id="loading-overlay"
         class="fixed inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-40 hidden">
         <div role="status">
-        <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-        </svg>
-        <span class="sr-only">Loading...</span>
+            <svg aria-hidden="true" class="w-12 h-12 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101"
+                fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                    fill="currentColor" />
+                <path
+                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                    fill="currentFill" />
+            </svg>
+            <span class="sr-only">Loading...</span>
+        </div>
     </div>
     </div>
-</div>
 
     <div class="flex flex-col md:flex-row gap-4 md:gap-8 space-y-6">
         <div class="w-full md:w-1/3 space-y-6">
             <div class="space-y-6 px-6 md:p-0">
-                <div class="mb-6 border-b border-gray-300">
-                    <nav class="flex pb-4" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                            <li class="inline-flex items-center">
-                                <a href="{{ url_for('dashboard') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
-          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
-                                    {% if request.path == '/dashboard' %}
-                    text-gray-400
-                    {% else %}
-                    self-center
-                    {% endif %}">
-                                    Home
-                                </a>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m1 9 4-4-4-4" />
-                                    </svg>
-                                    <a href="{{ url_for('income') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
-          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
-            {% if request.path == '/income' %}
-                    text-gray-400
-                    {% else %}
-                    self-center
-                    {% endif %}">Income</a>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m1 9 4-4-4-4" />
-                                    </svg>
-                                    <a href="{{ url_for('expenses') }}" class="ms-1 text-sm font-medium md:ms-2 hover:text-blue-600 active:text-blue-600
-          hover:scale-110 active:scale-95 transition-transform transition-colors duration-200
-            {% if request.path == '/expenses' %}
-                    text-gray-400
-                    {% else %}
-                    self-center
-                    {% endif %}">Expenses</a>
-                                </div>
-                            </li>
-                        </ol>
-                    </nav>
-                </div>
+
                 <div class="text-center md:text-left space-y-2">
-                    <h2 class="text-xl font-medium text-gray-800 capitalize">{{ tipe }} Form</h2>
-                    <p class="text-gray-500 text-sm">Make sure everything’s filled out correctly</p>
+                    <h2 class="text-xl font-medium text-gray-800 capitalize">Tambah Barang</h2>
+                    <p class="text-gray-500 text-sm">Masukkan informasi barang</p>
                 </div>
 
                 <form id="addRecordForm" method="POST" class="space-y-4">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="space-y-2">
                         <div class="mb-1">
-                            <label class="block text-sm font-bold text-gray-700">Item</label>
+                            <label class="block text-sm font-bold text-gray-700">Nama Barang</label>
                         </div>
-                        <input type="text" name="item" required placeholder="Enter item name or description"
+                        <input type="text" name="nama_barang" required placeholder="Masukkan nama barang"
                             class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
                     </div>
 
                     <div class="space-y-2">
                         <div class="mb-1">
-                            <label class="block text-sm font-bold text-gray-700">Amount</label>
+                            <label class="block text-sm font-bold text-gray-700">Merek/Spesifikasi</label>
                         </div>
-                        <input type="text" id="amount_display" required placeholder="Enter numeric amount"
+                        <input type="text" name="merek" id="merek" required
+                            placeholder="Masukkan merek atau spesifikasi barang"
                             class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
-                        <input type="hidden" id="amount_real" name="amount">
                     </div>
 
                     <div class="grid gap-6 grid-cols-2">
                         <div>
                             <div class="mb-1">
-                                <label class="block text-sm font-bold text-gray-700">Date</label>
+                                <label class="block text-sm font-bold text-gray-700">Jumlah</label>
                             </div>
-                            <input type="date" name="date" value="{{ today }}" required
+                            <input type="number" name="jumlah" required placeholder="Masukkan jumlah barang"
                                 class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
                         </div>
 
                         <div>
                             <div class="mb-1">
-                                <label class="block text-sm font-bold text-gray-700">Category</label>
+                                <label class="block text-sm font-bold text-gray-700">Kondisi</label>
                             </div>
-                            <select name="category" required
+                            <input type="text" name="kondisi" required placeholder="Masukkan kondisi barang"
                                 class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
-                                <option value="" disabled selected>Choose</option>
-                                {% for category in categories %}
-                                <option value="{{ category }}">{{ category }}</option>
-                                {% endfor %}
-                            </select>
                         </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="mb-1">
+                            <label class="block text-sm font-bold text-gray-700">Tanggal Masuk</label>
+                        </div>
+                        <input type="date" name="date" id="date" value="{{today}}" required
+                            class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="mb-1">
+                            <label class="block text-sm font-bold text-gray-700">Keterangan</label>
+                        </div>
+                        <textarea name="keterangan" id="keterangan" placeholder="Masukkan keterangan barang"
+                            class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300"></textarea>
                     </div>
 
                     <button type="submit" id="submitButton" class="mt-2 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-6 rounded-md font-medium
@@ -183,19 +151,10 @@
                         </svg>
 
                         <!-- Button text -->
-                        <span id="submitText">Save</span>
+                        <span id="submitText">Simpan</span>
                     </button>
 
                 </form>
-
-                <div class="mt-10">
-                    <h3 class="text-base font-medium text-gray-700 mb-3">
-                        {{ month_name }} {{ selected_year }} {{ tipe|capitalize }} Summary by Category
-                    </h3>
-                    <canvas id="barChart" data-labels='{{ chart_labels | tojson | safe }}'
-                        data-data='{{ chart_data | tojson | safe }}' class="w-full h-64">
-                    </canvas>
-                </div>
             </div>
         </div>
         <div class="w-full md:w-2/3 space-y-6">
@@ -203,59 +162,11 @@
                 <div class="space-y-6 p-6">
                     <div class="md:flex items-center justify-between mb-6">
                         <div class="text-center md:text-left space-y-2">
-                            <h2 class="text-xl font-medium text-gray-800 capitalize">{{tipe}} Report ({{ month_name }}
-                                {{
-                                selected_year }})</h2>
-                            <p class="text-gray-500 text-sm">View your monthly {{tipe}} report.</p>
+                            <h2 class="text-xl font-medium text-gray-800 capitalize">Informasi Barang</h2>
+                            <p class="text-gray-500 text-sm">Lihat detail barang inventaris</p>
                         </div>
                         <div class="mb-4 md:flex md:justify-end space-x-2">
-                            <!-- Filter Section -->
-                            <form id="filterForm" method="get"
-                                class="w-full flex flex-row items-center justify-start sm:justify-end gap-2 sm:gap-3 mt-4 mb-6">
-
-                                <!-- Bulan -->
-                                <div class="w-full sm:w-auto">
-                                    <select id="month" name="month"
-                                        class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        {% for m in range(1, 13) %}
-                                        <option value="{{ m }}" {% if m|string==selected_month %}selected{% endif %}>{{
-                                            m | monthname }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Tahun -->
-                                <div class="w-full sm:w-auto">
-                                    <select id="year" name="year"
-                                        class="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        {% for y in range(2025, now().year + 1) %}
-                                        <option value="{{ y }}" {% if y|string==selected_year %}selected{% endif %}>{{ y
-                                            }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Tombol Filter -->
-                                <div class="w-1/2">
-                                    <button id="filterBtn" type="submit"
-                                        class="w-full inline-flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-
-                                        <!-- Ikon -->
-                                        <span id="btnText">
-                                            <i class="fa-solid fa-filter"></i>
-                                        </span>
-
-                                        <!-- Spinner -->
-                                        <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                stroke-width="4" />
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </form>
+                            <!--others-->
                         </div>
                     </div>
 
@@ -266,21 +177,26 @@
                                 <tr class="bg-gray-50">
                                     <th
                                         class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        No
-                                    </th>
+                                        Kode</th>
                                     <th
                                         class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Item</th>
-                                    <th
-                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Category</th>
+                                        Nama Barang</th>
                                     <th
                                         class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Amount
+                                        Merek/Spesifikasi</th>
                                     </th>
                                     <th
                                         class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date</th>
+                                        Jumlah</th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Tanggal Masuk</th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Kondisi</th>
+                                    <th
+                                        class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Keterangan</th>
                                     <th
                                         class="px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Action
@@ -290,12 +206,13 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 {% for row in records %}
                                 <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 text-sm">
-                                    <td class="px-3 py-2 whitespace-nowrap text-gray-900">{{ loop.index }}</td>
-                                    <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[2] }}</td>
-                                    <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[3] }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap currency text-right">{{ row[4]|format_rupiah
-                                        }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[1]|format_date }}</td>
+                                    <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[0] }}</td>
+                                    <td class="px-3 py-2 capitalize whitespace-nowrap">{{ row[1] }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[2]}}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[3] }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[4]|format_date }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[5] }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ row[6] }}</td>
                                     <td class="px-3 py-2">
                                         <div class="flex items-center space-x-2">
                                             <button class="edit-btn cursor-pointer
@@ -305,36 +222,20 @@
                                             hover:underline hover:underline-offset-2"
                                                 data-modal-target="edit-record-modal"
                                                 data-modal-toggle="edit-record-modal" data-id="{{row[0]}}"
-                                                data-date="{{ row[1] }}" data-item="{{ row[2] }}"
-                                                data-category="{{ row[3] }}"
-                                                data-amount="{{ row[4]|replace('Rp', '')|replace('.', '')|replace(',', '')|replace(' ', '')|trim }}"
-                                                data-sheet="{{tipe}}">
+                                                data-nama_barang="{{ row[1] }}" data-merek="{{ row[2] }}"
+                                                data-jumlah="{{ row[3] }}" data-date="{{ row[4] }}"
+                                                data-kondisi="{{ row[5] }}" data-keterangan="{{ row[6] }}"
+                                                data-sheet="Barang">
                                                 Edit
                                             </button>
                                             <!-- Separator -->
                                             <span class="text-gray-300">|</span>
-                                            <button class="delete-record cursor-pointer
-                                            text-red-600 hover:text-red-800 active:text-red-900
-                                            font-medium text-sm
-                                            py-1
-                                            transition-all duration-200 ease-in-out
-                                            hover:underline hover:underline-offset-2"
-                                                data-url="{{ url_for('delete_record', sheet=tipe, record_id=row[0]) }}">
-                                                Delete</button>
+
                                         </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="3" class="px-3 py-2 text-right font-medium text-sm text-gray-700">Total
-                                    </th>
-                                    <th id="total-amount" class="px-2 py-2 text-sm text-right text-gray-900 currency">
-                                    </th>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
 
@@ -350,9 +251,9 @@
                                     <div
                                         class="flex items-center justify-between p-4 md:p-5 rounded-t border-b border-gray-300">
                                         <div>
-                                            <h1 class="font-medium">Update {{ tipe }}</h1>
-                                            <p class="py-2 text-gray-500 text-sm">Make sure everything’s filled out
-                                                correctly</p>
+                                            <h1 class="font-medium">Perbarui Barang</h1>
+                                            <p class="py-2 text-gray-500 text-sm">Pastikan informasi barang inventaris
+                                                benar</p>
                                         </div>
                                         <button type="button"
                                             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center cursor-pointer"
@@ -373,29 +274,43 @@
                                         <input type="hidden" id="editId" name="record_id">
                                         <input type="hidden" id="editSheet" name="sheet">
 
-                                        <!-- ITEM -->
                                         <div class="grid gap-4 mb-4 grid-cols-1">
                                             <div class="space-y-2">
-                                                <label for="editItem"
-                                                    class="block text-sm font-bold text-gray-700">Item</label>
-                                                <input type="text" id="editItem" name="item" required
-                                                    placeholder="Enter item name or description"
+                                                <label for="editNamaBarang"
+                                                    class="block text-sm font-bold text-gray-700">Nama Barang</label>
+                                                <input type="text" id="editNamaBarang" name="nama_barang" required
+                                                    placeholder="Masukkan nama barang"
                                                     class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
                                             </div>
 
-                                            <!-- AMOUNT -->
                                             <div class="space-y-2">
-                                                <label for="amount_display2"
-                                                    class="block text-sm font-bold text-gray-700">Amount</label>
-                                                <input type="text" id="amount_display2" required
-                                                    placeholder="Enter numeric amount"
+                                                <label for="jumlah"
+                                                    class="block text-sm font-bold text-gray-700">Jumlah</label>
+                                                <input type="number" id="jumlah" required
+                                                    placeholder="Masukkan jumlah barang"
                                                     class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
-                                                <input type="hidden" id="amount_real2" name="amount">
                                             </div>
                                         </div>
 
                                         <div class="grid gap-4 mb-4 md:grid-cols-2">
-                                            <!-- DATE -->
+                                            <div class="space-y-2">
+                                                <label for="editMerek"
+                                                    class="block text-sm font-bold text-gray-700">Merek/Spesifikasi</label>
+                                                <input type="text" id="editMerek" name="merek" required
+                                                    placeholder="Masukkan merek atau spesifikasi barang"
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <label for="editKondisi"
+                                                    class="block text-sm font-bold text-gray-700">Kondisi</label>
+                                                <input type="text" id="editMerek" name="merek" required
+                                                    placeholder="Masukkan merek atau spesifikasi barang"
+                                                    class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
+                                            </div>
+                                        </div>
+
+                                        <div class="grid gap-4 mb-4 md:grid-cols-2">
                                             <div class="space-y-2">
                                                 <label for="editDate"
                                                     class="block text-sm font-bold text-gray-700">Date</label>
@@ -403,17 +318,12 @@
                                                     class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
                                             </div>
 
-                                            <!-- CATEGORY -->
                                             <div class="space-y-2">
-                                                <label for="editCategory"
-                                                    class="block text-sm font-bold text-gray-700">Category</label>
-                                                <select id="editCategory" name="category" required
+                                                <label for="editKeterangan"
+                                                    class="block text-sm font-bold text-gray-700">Keterangan</label>
+                                                <input type="text" id="editKeterangan" name="Keterangan" required
+                                                    placeholder="Masukkan keterangan barang"
                                                     class="w-full p-3 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300">
-                                                    <option value="" disabled>Choose</option>
-                                                    {% for category in categories %}
-                                                    <option value="{{ category }}">{{ category }}</option>
-                                                    {% endfor %}
-                                                </select>
                                             </div>
                                         </div>
 
@@ -432,7 +342,7 @@
                                                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                                             </svg>
 
-                                            <span id="submitText2">Save</span>
+                                            <span id="submitText2">Simpan</span>
                                         </button>
                                     </form>
                                 </div>
@@ -461,14 +371,8 @@
                 info: "Showing _TOTAL_ entries",
                 zeroRecords: "No records found"
             },
-            columnDefs: [{
-                targets: 0,
-                searchable: false,
-                orderable: false,
-                render: (data, type, row, meta) => meta.row + 1,
-                className: "px-2 py-1"
-            },
-            { targets: '_all', className: "px-2 py-1" }
+            columnDefs: [
+                { targets: '_all', className: "px-2 py-1" }
             ],
             dom:
                 // Only search bar on top, and info on bottom
@@ -480,119 +384,10 @@
                 $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded text-sm');
                 $('.dataTables_info').addClass('text-sm text-gray-600 mt-2');
             },
-
-            // 👇 Footer callback untuk total amount
-            footerCallback: function (row, data, start, end, display) {
-                let api = this.api();
-
-                // Ambil kolom Amount (kolom ke-3 atau index 3)
-                let parseAmount = val => {
-                    if (typeof val === 'string') {
-                        val = val.replace(/[^\d]/g, ''); // Hapus semua kecuali digit
-                        return parseInt(val) || 0;
-                    }
-                    return typeof val === 'number' ? val : 0;
-                };
-
-                let total = api.column(3, { page: 'current' }).data().reduce(function (a, b) {
-                    return parseAmount(a) + parseAmount(b);
-                }, 0);
-
-                // Format ke Rupiah
-                const formatted = new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(total);
-
-                // Tampilkan ke kolom footer
-                $(api.column(3).footer()).html(formatted);
-            }
         });
     });
 </script>
 
-<!-- bar chart-->
-<script>
-    const canvas = document.getElementById('barChart');
-    const labels = JSON.parse(canvas.dataset.labels || '[]');
-    const data = JSON.parse(canvas.dataset.data || '[]');
-
-    const ctx = canvas.getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Total',
-                data: data,
-                backgroundColor: '#3b82f630', // 25% opacity
-                borderColor: '#3b82f6',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return 'Rp ' + (context.raw || 0).toLocaleString();
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: { color: '#f3f4f6' },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: function (value) {
-                            return 'Rp ' + value.toLocaleString();
-                        }
-                    }
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: { color: '#6b7280' }
-                }
-            }
-        }
-    });
-</script>
-
-<!--Amount formatter-->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const displayInput = document.getElementById("amount_display");
-        const realInput = document.getElementById("amount_real");
-
-        // Format angka pakai titik
-        function formatWithDot(number) {
-            return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        // Hapus semua karakter kecuali angka
-        function getRawNumber(str) {
-            return str.replace(/[^\d]/g, "");
-        }
-
-        displayInput.addEventListener("input", function () {
-            const raw = getRawNumber(this.value);
-            const formatted = formatWithDot(raw);
-            this.value = formatted;
-            realInput.value = raw;
-        });
-
-        // Hanya izinkan angka saat diketik
-        displayInput.addEventListener("keypress", function (e) {
-            if (!/\d/.test(e.key)) e.preventDefault();
-        });
-    });
-</script>
 
 <!--Swal mixin-->
 <script>
@@ -613,19 +408,9 @@
 <!--add form-->
 <script>
     const addForm = document.getElementById("addRecordForm");
-    const amountInput = document.getElementById("amount_display");
-    const amountHidden = document.getElementById("amount_real");
     const submitBtn = document.getElementById("submitButton");
     const submitText = document.getElementById("submitText");
     const loadingSpinner = document.getElementById("loadingSpinner");
-
-    if (amountInput) {
-        amountInput.addEventListener('input', () => {
-            const raw = amountInput.value.replace(/[^\d]/g, '');
-            amountInput.value = new Intl.NumberFormat('id-ID').format(raw);
-            amountHidden.value = raw;
-        });
-    }
 
     if (addForm) {
         addForm.addEventListener("submit", function (e) {
@@ -634,7 +419,7 @@
             // loading
             submitBtn.disabled = true;
             loadingSpinner.classList.remove("hidden");
-            submitText.textContent = "Saving...";
+            submitText.textContent = "Menyimpan...";
 
             const formData = new FormData(addForm);
             fetch(window.location.pathname, {
@@ -646,19 +431,19 @@
                     if (data.status === "success") {
                         Toast.fire({
                             icon: 'success',
-                            title: 'Data saved'
+                            title: 'Data berhasil disimpan',
                         }).then(() => window.location.reload());
                     } else {
                         Toast.fire({
                             icon: 'error',
-                            title: data.message || 'Failed to save data'
+                            title: data.message || 'Gagal menyimpan data',
                         });
                     }
                 })
                 .catch(err => {
                     Toast.fire({
                         icon: 'error',
-                        title: 'Opps! an error occurred',
+                        title: 'Opps! Terjadi kesalahan',
                         text: err.message
                     });
                 })
@@ -677,41 +462,17 @@
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', () => {
             const date = button.dataset.date;
-            const item = button.dataset.item;
-            const category = button.dataset.category;
-            const amount = button.dataset.amount;
+            const nama_barang = button.dataset.nama_barang;
+            const merek = button.dataset.merek;
+            const jumlah = button.dataset.jumlah;
+            const kondisi = button.dataset.kondisi;
+            const keterangan = button.dataset.keterangan;
             const sheet = button.dataset.sheet;
             const id = button.dataset.id;  // Ganti dari data-index ke data-id
 
             // Isi ke form
             document.getElementById("editDate").value = date || "";
             document.getElementById("editItem").value = item || "";
-
-            // Format dan isi amount
-            const rawAmount = amount.replace(/[^\d]/g, '') || "0";
-            const formattedAmount = new Intl.NumberFormat('id-ID').format(rawAmount);
-            document.getElementById("amount_display2").value = formattedAmount;
-            document.getElementById("amount_real2").value = rawAmount;
-
-            // Pilih kategori di <select>
-            const select = document.getElementById("editCategory");
-            if (select) {
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].value === category) {
-                        select.selectedIndex = i;
-                        break;
-                    }
-                }
-
-                // Disable opsi kosong jika ada
-                if (select.options[0].value === "") {
-                    select.options[0].disabled = true;
-                }
-            }
-
-            // Set input hidden
-            document.getElementById("editSheet").value = sheet;
-            document.getElementById("editId").value = id;  // Ganti dari editIndex ke editId
 
             // Tampilkan modal (dengan transisi)
             const modal = document.getElementById('edit-record-modal');
@@ -735,14 +496,14 @@
             // loading
             submitBtn2.disabled = true;
             loadingSpinner2.classList.remove("hidden");
-            submitText2.textContent = "Saving...";
+            submitText2.textContent = "Menyimpan...";
 
             const sheet = document.getElementById("editSheet").value;
-            const recordId = document.getElementById("editId").value;
+            const kodeBarang = document.getElementById("editId").value;
 
             const formData = new FormData(form);
 
-            fetch(`/edit/${sheet}/${recordId}`, {
+            fetch(`/edit/${sheet}/${kodeBarang}`, {
                 method: 'POST',
                 body: formData
             })
@@ -751,20 +512,20 @@
                     if (data.status === "success") {
                         Toast.fire({
                             icon: "success",
-                            title: "Data saved"
+                            title: "Data berhasil diperbarui",
                         }).then(() => window.location.reload());
                     } else {
                         Toast.fire({
                             icon: "error",
                             title: "Gagal",
-                            text: data.message || "Failed to saved data"
+                            text: data.message || "Gagal memperbarui data",
                         });
                     }
                 })
                 .catch(err => {
                     Toast.fire({
                         icon: "error",
-                        title: "Oops! an error occurred",
+                        title: "Oops! Terjadi kesalahan",
                         text: err.message
                     });
                 })
@@ -776,33 +537,6 @@
                 });
         });
     }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const displayInput = document.getElementById("amount_display2");
-        const realInput = document.getElementById("amount_real2");
-
-        // Format angka pakai titik
-        function formatWithDot(number) {
-            return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        // Hapus semua karakter kecuali angka
-        function getRawNumber(str) {
-            return str.replace(/[^\d]/g, "");
-        }
-
-        displayInput.addEventListener("input", function () {
-            const raw = getRawNumber(this.value);
-            const formatted = formatWithDot(raw);
-            this.value = formatted;
-            realInput.value = raw;
-        });
-
-        // Hanya izinkan angka saat diketik
-        displayInput.addEventListener("keypress", function (e) {
-            if (!/\d/.test(e.key)) e.preventDefault();
-        });
-    });
 
     // Fungsi untuk buka modal
     function openModal(modal) {
@@ -908,29 +642,29 @@
 
 <!--Loading page spinner-->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const navLinks = document.querySelectorAll('nav a');
+    document.addEventListener('DOMContentLoaded', () => {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const navLinks = document.querySelectorAll('nav a');
 
-    function showLoading() {
-      loadingOverlay.classList.remove('hidden');
-    }
-
-    function hideLoading() {
-      loadingOverlay.classList.add('hidden');
-    }
-
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (!link.classList.contains('text-gray-400')) {
-          showLoading();
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
         }
-      });
-    });
 
-    // Sembunyikan saat halaman selesai dimuat
-    window.addEventListener('load', hideLoading);
-  });
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!link.classList.contains('text-gray-400')) {
+                    showLoading();
+                }
+            });
+        });
+
+        // Sembunyikan saat halaman selesai dimuat
+        window.addEventListener('load', hideLoading);
+    });
 </script>
 
 
