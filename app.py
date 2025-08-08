@@ -1,5 +1,6 @@
 import secrets
 from uuid import uuid4
+import uuid
 from flask import Flask, Response, jsonify, render_template, request, redirect, send_file, session, url_for, flash, abort
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -18,7 +19,7 @@ from flask_session import Session
 from flask import send_from_directory
 from docx import Document
 from docx.shared import Inches, Pt
-from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from io import BytesIO
@@ -189,6 +190,18 @@ def get_data(sheet_name):
 
     values = result.get('values', [])
     return values
+
+# Simpan data ke sheet Peminjaman
+def simpan_peminjaman(data_rows):
+    body = {
+        "values": data_rows
+    }
+    sheets_service.spreadsheets().values().append(
+        spreadsheetId=SPREADSHEET_ID,
+        range="Peminjaman!A2",
+        valueInputOption="USER_ENTERED",
+        body=body
+    ).execute()
     
 # Home page    
 @app.route("/")
@@ -382,69 +395,78 @@ def get_barang_by_kode(kode_barang):
 
     return None
 
-@app.route('/cetak-label/<kode_barang>')
-def cetak_label(kode_barang):
-    # Misal ambil data dari Google Sheets atau DB
-    barang = get_barang_by_kode(kode_barang)  # buat fungsi ini sesuai datamu
+@app.route('/cetak-label')
+def cetak_label_batch():
+    kode_list = request.args.get('kode')  # contoh: ?kode=BRG001,BRG002
+    if not kode_list:
+        return "Tidak ada kode barang dipilih", 400
 
-    if not barang:
-        return "Barang tidak ditemukan", 404
+    kode_barang_list = kode_list.split(',')
 
-    nama_barang = barang['nama_barang']  # pastikan key sesuai
-    merek = barang['merek']
-    kondisi = barang['kondisi']
-
-    # Generate QR Code
-    qr = qrcode.make(kode_barang)
-    qr_io = BytesIO()
-    qr.save(qr_io, format='PNG')
-    qr_io.seek(0)
-
-    # Buat dokumen Word
     doc = Document()
 
-    # Buat table 1 kolom, 3 baris (QR + Text)
-    table = doc.add_table(rows=3, cols=1)
-    table.alignment = WD_TABLE_ALIGNMENT.LEFT
-    table.autofit = True
-    table.style = 'Table Grid'
+    for kode_barang in kode_barang_list:
+        barang = get_barang_by_kode(kode_barang.strip())
 
-    # Tambahkan border
-    #tbl = table._tbl
-    #tbl.set(qn('w:tblBorders'), 
-    #    '''
-    #    <w:tblBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-    #        <w:top w:val="single" w:sz="6" w:space="0" w:color="000000"/>
-    #        <w:left w:val="single" w:sz="6" w:space="0" w:color="000000"/>
-    #        <w:bottom w:val="single" w:sz="6" w:space="0" w:color="000000"/>
-    #        <w:right w:val="single" w:sz="6" w:space="0" w:color="000000"/>
-    #    </w:tblBorders>
-    #    '''
-    #)
+        if not barang:
+            continue  # Lewati jika tidak ditemukan
 
-    # Baris 1: Judul label
-    cell0 = table.cell(0, 0)
-    p0 = cell0.paragraphs[0]
-    p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run0 = p0.add_run("Label Inventaris")
-    run0.bold = True
-    run0.font.size = Pt(12)
+        nama_barang = barang['nama_barang']
+        merek = barang['merek']
+        kondisi = barang['kondisi']
 
-    # Baris 2: QR code
-    cell1 = table.cell(1, 0)
-    p1 = cell1.paragraphs[0]
-    run1 = p1.add_run()
-    run1.add_picture(qr_io, width=Inches(1.5))
-    p1.alignment = 1  # Center
+        # Generate QR Code
+        qr = qrcode.make(kode_barang)
+        qr_io = BytesIO()
+        qr.save(qr_io, format='PNG')
+        qr_io.seek(0)
 
-    # Baris 3: Text
-    cell2 = table.cell(2, 0)
-    p2 = cell2.paragraphs[0]
-    p2.alignment = 1  # Center
-    run2 = p2.add_run(f"{kode_barang}\n{nama_barang}\n{merek}\n{kondisi}")
-    run2.font.size = Pt(10)
+        # Tambahkan section break jika bukan label pertama
+        if doc.tables:
+            doc.add_paragraph().add_run().add_break()  # bisa diganti Section jika perlu page break
 
-    # Simpan ke memory
+        # Buat tabel label
+        table = doc.add_table(rows=2, cols=2)
+        table.alignment = WD_TABLE_ALIGNMENT.LEFT
+        table.autofit = True
+        table.style = 'Table Grid'
+
+        # Baris 1: Judul
+        cell0 = table.cell(0, 0)
+        p0 = cell0.paragraphs[0]
+        p0.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        run0 = p0.add_run("Pindai QR Code")
+        run0.bold = True
+        run0.font.size = Pt(11)
+
+        cell0 = table.cell(0, 1)
+        p0 = cell0.paragraphs[0]
+        p0.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        run0 = p0.add_run("Informasi Barang Inventaris")
+        run0.bold = True
+        run0.font.size = Pt(11)
+
+        # Baris 2: QR Code
+        cell1 = table.cell(1, 0)
+        p1 = cell1.paragraphs[0]
+        run1 = p1.add_run()
+        run1.add_picture(qr_io, width=Inches(1.5))
+        p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Baris 3: Text
+        cell2 = table.cell(1, 1)
+        cell2.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        p2 = cell2.paragraphs[0]
+        p2.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Konten kiri
+        run2 = p2.add_run(
+            f"Kode      : {kode_barang}\n"
+            f"Nama      : {nama_barang}\n"
+            f"Merek     : {merek}\n"
+            f"Kondisi   : {kondisi}"
+        )
+        run2.font.size = Pt(10)
+
+    # Simpan dokumen ke memory
     doc_io = BytesIO()
     doc.save(doc_io)
     doc_io.seek(0)
@@ -452,9 +474,39 @@ def cetak_label(kode_barang):
     return send_file(
         doc_io,
         as_attachment=True,
-        download_name=f'label_{kode_barang}.docx',
+        download_name='label_barang.docx',
         mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     )
+
+
+# Peminjaman
+@app.route('/peminjaman', methods=['GET', 'POST'])
+def peminjaman():
+    barang_list = get_data("Barang")
+    available = []
+
+    if request.method == 'POST':
+        if 'cek_ketersediaan' in request.form:
+            # Step 1: Cek ketersediaan
+            tgl_pinjam = request.form['tgl_pinjam']
+            tgl_kembali = request.form['tgl_kembali']
+            available = barang_list  # Bisa ditambah pengecekan bentrok jadwal jika diperlukan
+
+        elif 'submit_peminjaman' in request.form:
+            # Step 2: Simpan data peminjaman
+            nomor = str(uuid.uuid4())[:8]  # Bisa diganti generator lainnya
+            nama = request.form['nama']
+            instansi = request.form['instansi']
+            telp = request.form['telp']
+            kode_barang = request.form['kode_barang']
+            nama_barang = request.form['nama_barang']
+            merek = request.form['merek']
+
+            simpan_peminjaman([[nomor, nama, instansi, telp, kode_barang, nama_barang, merek]])
+            flash('Peminjaman berhasil disimpan.')
+            return redirect(url_for('peminjaman'))
+
+    return render_template('peminjaman.html', barang_list=barang_list, available=available)
 
 ## Unduh annual report pdf
 #@app.route('/annual_report')
